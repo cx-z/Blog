@@ -119,6 +119,28 @@ brew install cmake
 brew install sqlite3
 ```
 
+### ❌ 问题: 404 错误 - GitHub 资源下载失败
+
+**The requested URL returned error: 404**
+
+这通常是因为 GitHub 连接问题。查看完整的解决方案：
+
+👉 [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md) ⭐ **详细故障排除指南**
+
+快速解决：
+```bash
+# 方案 1：清理并重试
+rm -rf build
+./build.sh
+
+# 方案 2：如果仍然失败，手动下载依赖
+mkdir -p build/{crow_include,json_include/nlohmann}
+curl -L https://raw.githubusercontent.com/CrowCpp/Crow/v1.0+5/include/crow_all.hpp \
+     -o build/crow_include/crow_all.hpp
+curl -L https://raw.githubusercontent.com/nlohmann/json/v3.11.2/single_include/nlohmann/json.hpp \
+     -o build/json_include/nlohmann/json.hpp
+```
+
 ### ❌ 问题: "Address already in use"
 
 端口 8080 被占用。杀死占用的进程：
@@ -151,6 +173,26 @@ cd /Users/bytedance/Projects/Blog
 rm -rf build
 ./build.sh
 ```
+
+### ❌ Git 仓库问题: "not a git repository"
+
+```bash
+# 初始化 Git 仓库
+cd /Users/bytedance/Projects/Blog
+git init
+git config user.email "you@example.com"
+git config user.name "Your Name"
+git add .
+git commit -m "Initial commit"
+```
+
+---
+
+### 📖 需要更多帮助？
+
+- **详细故障排除** → 查看 [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md)
+- **完整编译指南** → 查看 [README.md](README.md)
+- **项目概览** → 查看 [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
 
 ---
 

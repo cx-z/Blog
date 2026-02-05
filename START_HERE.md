@@ -35,10 +35,12 @@
 - CSS 动画效果
 
 ### 3. **工具和文档**
-- ✅ [build.sh](build.sh) - 自动编译脚本
+- ✅ [build.sh](build.sh) - 自动编译脚本 (改进版，支持重试)
+- ✅ [download-deps.sh](download-deps.sh) - 手动下载依赖脚本
 - ✅ [test-api.sh](test-api.sh) - API 测试脚本
-- ✅ [README.md](README.md) - 详细指南 (260+ 行)
+- ✅ [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md) ⭐ **故障排除指南**
 - ✅ [QUICKSTART.md](QUICKSTART.md) - 快速启动
+- ✅ [README.md](README.md) - 详细指南
 - ✅ [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) - 项目概览
 - ✅ [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md) - 完成总结
 
@@ -88,10 +90,17 @@ cd build
 
 ## 📖 文档导航
 
-- **🚀 快速开始?** → 阅读 [QUICKSTART.md](QUICKSTART.md)
-- **📚 详细指南?** → 阅读 [README.md](README.md)
-- **🏗️ 项目分析?** → 阅读 [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
-- **✅ 完成总结?** → 阅读 [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md)
+根据您的需求选择文档：
+
+### 🎯 按用途分类
+
+| 需求 | 文档 |
+|------|------|
+| 快速开始 | [QUICKSTART.md](QUICKSTART.md) |
+| 编译失败? | ⭐ [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md) |
+| 详细指南 | [README.md](README.md) |
+| 技术分析 | [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) |
+| 项目总结 | [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md) |
 
 ---
 
@@ -131,10 +140,11 @@ cd build
 - [x] SQLite 数据库集成
 - [x] RESTful API (CRUD)
 - [x] 前端页面 (HTML)
-- [x] 前端样式 (CSS)
-- [x] 前端交互 (JavaScript)
-- [x] 跨域请求支持 (CORS)
-- [x] 错误处理机制
+- [x] 前端样式 ( (含重试)
+- [x] 手动下载脚本
+- [x] API 测试脚本
+- [x] 完整文档
+- [x] Git 仓库支持
 - [x] 参数化查询防注入
 - [x] HTML 转义防 XSS
 - [x] CMake 构建配置
@@ -193,47 +203,33 @@ A: SQLite 数据库存储在 `db/blog.db`
 - 跨域处理
 
 ---
+⚠️ 遇到编译问题？
 
-## 🎊 下一步建议
+如果您遇到 **404 错误或网络问题**：
 
-1. ✅ **立即尝试**
-   - 运行 `./build.sh` 编译
-   - 运行 `./build/bin/blog_server` 启动
-   - 访问 http://localhost:8080/index.html
+### ⭐ 查看: [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md)
 
-2. 🔍 **源代码学习**
-   - 阅读后端代码理解 API 实现
-   - 阅读前端代码理解异步交互
-   - 研究数据库模块的 CRUD 操作
+快速方案：
+```bash
+# 方案 1：清理并重试
+rm -rf build
+./build.sh
 
-3. 💡 **添加新功能**
-   - 分页功能
-   - 搜索功能
-   - 标签系统
-   - 用户认证
-   - 评论功能
+# 方案 2：使用手动下载脚本
+./download-deps.sh
 
-4. 🚀 **生产部署**
-   - 使用 Nginx 反向代理
-   - 配置 systemd 服务
-   - 定期备份数据库
-   - 监控日志文件
+# 方案 3：检查网络问题
+ping github.com
+```
 
-5. 📦 **项目扩展**
-   - 添加更多 API 端点
-   - 实现富文本编辑器
-   - 图片上传功能
-   - WebSocket 实时通知
+### 常见错误及解决
 
----
-
-## 📞 获取帮助
-
-遇到问题?
-
-1. **快速启动问题** → 查看 [QUICKSTART.md](QUICKSTART.md) 的"问题排查"
-2. **编译问题** → 查看 [README.md](README.md) 的"问题排查"
-3. **代码问题** → 查看 [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
+| 错误 | 解决方案 |
+|------|---------|
+| `404 from GitHub` | 见 [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md) - 方案 1-3 |
+| `not a git repository` | 运行 `git init` |
+| `CMake not found` | 运行 `brew install cmake` |
+| `Address already in use` | 修改端口或杀死占用进程 |PROJECT_OVERVIEW.md)
 4. **API 问题** → 运行 `./test-api.sh` 进行测试
 
 ---
