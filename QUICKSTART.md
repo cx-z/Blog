@@ -175,8 +175,8 @@ rm -rf build
 ./build.sh
 
 # 方案 2：如果仍然失败，手动下载依赖
-mkdir -p build/{crow_include,json_include/nlohmann}
-curl -L https://github.com/CrowCpp/Crow/releases/download/v1.2.0/crow_all.h \
+mkdir -p build/deps/{crow_include,json_include/nlohmann}
+curl -L https://github.com/CrowCpp/Crow/releases/download/v1.3.0/crow_all.h \
      -o build/deps/crow_include/crow_all.hpp
 curl -L https://raw.githubusercontent.com/nlohmann/json/v3.11.2/single_include/nlohmann/json.hpp \
      -o build/deps/json_include/nlohmann/json.hpp

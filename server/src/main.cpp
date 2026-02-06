@@ -19,23 +19,28 @@ int main() {
 
     // ==================== 静态文件服务 ====================
     // 提供前端静态文件
-    app.get("/", [](const crow::request&) {
-        return crow::response(crow::status::permanent_redirect, "/index.html");
+    CROW_ROUTE(app, "/")
+    ([]() {
+        crow::response res;
+        res.code = 301;
+        res.add_header("Location", "/index.html");
+        return res;
     });
 
     // 提供任意静态文件
-    app.get("/<path>", [](const crow::request& req) {
-        std::string file_path = "../web/" + req.url_params.get("path");
+    CROW_ROUTE(app, "/<path>")
+    ([](const crow::request& req, std::string path) {
+        std::string file_path = "../web/" + path;
         
         // 简单的安全检查，防止路径遍历
         if (file_path.find("..") != std::string::npos) {
-            return crow::response(crow::status::not_found);
+            return crow::response(404, "Not Found");
         }
         
         // 读取文件
         std::ifstream file(file_path);
         if (!file.is_open()) {
-            return crow::response(crow::status::not_found);
+            return crow::response(404, "Not Found");
         }
         
         std::stringstream buffer;
@@ -46,26 +51,35 @@ int main() {
     // ==================== API 路由 ====================
     
     // GET /api/posts - 获取所有文章
-    app.get("/api/posts", [&db](const crow::request&) {
+    CROW_ROUTE(app, "/api/posts")
+    ([&db]() {
         auto posts = db.getAllPosts();
-        std::vector<crow::json::wvalue> json_posts;
+        crow::json::wvalue::list json_posts;
         
         for (const auto& post : posts) {
-            json_posts.push_back(post.to_json());
+            // 转换 nlohmann::json 到 crow::json::wvalue
+            crow::json::wvalue item;
+            auto post_json = post.to_json();
+            item["id"] = post.id;
+            item["title"] = post_json["title"].dump();
+            item["content"] = post_json["content"].dump();
+            item["created_at"] = post_json["created_at"].dump();
+            json_posts.push_back(item);
         }
         
         crow::json::wvalue response;
         response["success"] = true;
-        response["data"] = json_posts;
+        response["data"] = std::move(json_posts);
         
-        auto res = crow::response(response);
+        crow::response res(response);
         res.add_header("Content-Type", "application/json");
         res.add_header("Access-Control-Allow-Origin", "*");
         return res;
     });
 
     // GET /api/posts/:id - 获取单篇文章
-    app.get("/api/posts/<int>", [&db](int id) {
+    CROW_ROUTE(app, "/api/posts/<int>")
+    ([&db](int id) {
         Post post = db.getPostById(id);
         
         crow::json::wvalue response;
@@ -73,20 +87,31 @@ int main() {
         if (post.id == -1) {
             response["success"] = false;
             response["message"] = "Post not found";
-            return crow::response(crow::status::not_found, response);
+            crow::response res(response);
+            res.code = 404;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
         }
         
         response["success"] = true;
-        response["data"] = post.to_json();
+        auto post_json = post.to_json();
+        crow::json::wvalue item;
+        item["id"] = post.id;
+        item["title"] = post_json["title"].dump();
+        item["content"] = post_json["content"].dump();
+        item["created_at"] = post_json["created_at"].dump();
+        response["data"] = std::move(item);
         
-        auto res = crow::response(response);
+        crow::response res(response);
         res.add_header("Content-Type", "application/json");
         res.add_header("Access-Control-Allow-Origin", "*");
         return res;
     });
 
     // POST /api/posts - 创建新文章
-    app.post("/api/posts", [&db](const crow::request& req) {
+    CROW_ROUTE(app, "/api/posts").methods("POST"_method)
+    ([&db](const crow::request& req) {
         auto body = crow::json::load(req.body);
         
         if (!body || !body.has("title") || !body.has("content")) {
@@ -94,7 +119,8 @@ int main() {
             error["success"] = false;
             error["message"] = "Missing title or content";
             
-            auto res = crow::response(crow::status::bad_request, error);
+            crow::response res(error);
+            res.code = 400;
             res.add_header("Content-Type", "application/json");
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
@@ -111,15 +137,23 @@ int main() {
         
         if (success) {
             response["success"] = true;
-            response["data"] = new_post.to_json();
-            auto res = crow::response(crow::status::created, response);
+            auto post_json = new_post.to_json();
+            crow::json::wvalue item;
+            item["id"] = new_post.id;
+            item["title"] = post_json["title"].dump();
+            item["content"] = post_json["content"].dump();
+            item["created_at"] = post_json["created_at"].dump();
+            response["data"] = std::move(item);
+            crow::response res(response);
+            res.code = 201;
             res.add_header("Content-Type", "application/json");
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
         } else {
             response["success"] = false;
             response["message"] = "Failed to insert post";
-            auto res = crow::response(crow::status::internal_server_error, response);
+            crow::response res(response);
+            res.code = 500;
             res.add_header("Content-Type", "application/json");
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
@@ -127,7 +161,8 @@ int main() {
     });
 
     // PUT /api/posts/:id - 更新文章
-    app.put("/api/posts/<int>", [&db](const crow::request& req, int id) {
+    CROW_ROUTE(app, "/api/posts/<int>").methods("PUT"_method)
+    ([&db](const crow::request& req, int id) {
         auto body = crow::json::load(req.body);
         
         if (!body || !body.has("title") || !body.has("content")) {
@@ -135,7 +170,8 @@ int main() {
             error["success"] = false;
             error["message"] = "Missing title or content";
             
-            auto res = crow::response(crow::status::bad_request, error);
+            crow::response res(error);
+            res.code = 400;
             res.add_header("Content-Type", "application/json");
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
@@ -152,28 +188,30 @@ int main() {
             response["message"] = "Failed to update post";
         }
         
-        auto res = crow::response(response);
+        crow::response res(response);
         res.add_header("Content-Type", "application/json");
         res.add_header("Access-Control-Allow-Origin", "*");
         return res;
     });
 
     // DELETE /api/posts/:id - 删除文章
-    app.delete_("/api/posts/<int>", [&db](int id) {
+    CROW_ROUTE(app, "/api/posts/<int>").methods("DELETE"_method)
+    ([&db](int id) {
         bool success = db.deletePost(id);
         
         crow::json::wvalue response;
         response["success"] = success;
         response["message"] = success ? "Post deleted" : "Failed to delete post";
         
-        auto res = crow::response(response);
+        crow::response res(response);
         res.add_header("Content-Type", "application/json");
         res.add_header("Access-Control-Allow-Origin", "*");
         return res;
     });
 
     // OPTIONS 请求处理 (CORS 预检)
-    app.options("/<path>", [](const crow::request&) {
+    CROW_ROUTE(app, "/<path>").methods("OPTIONS"_method)
+    ([](const crow::request&, std::string) {
         crow::response res;
         res.add_header("Access-Control-Allow-Origin", "*");
         res.add_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");

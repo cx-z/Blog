@@ -63,6 +63,7 @@ target_link_libraries(blog_server PRIVATE SQLite::SQLite3)
 target_include_directories(blog_server PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/deps/crow_include
     ${CMAKE_CURRENT_BINARY_DIR}/deps/json_include
+    /opt/homebrew/opt/asio/include
 )
 
 # 设置输出目录
