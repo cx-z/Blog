@@ -33,14 +33,14 @@ cd build && ./bin/blog_server
 
 ## 依赖安装
 
-### macOS
+# macOS
 
 ```bash
 # 安装 Xcode Command Line Tools（如果未安装）
 xcode-select --install
 
 # 使用 Homebrew 安装依赖
-brew install cmake sqlite3
+brew install cmake sqlite3 asio
 
 # 验证安装
 cmake --version

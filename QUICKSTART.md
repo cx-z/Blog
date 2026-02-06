@@ -13,7 +13,7 @@
 
 ```bash
 # macOS 用户
-brew install cmake sqlite3
+brew install cmake sqlite3 asio
 ```
 
 ### 步骤 2: 下载依赖库 (1-2 分钟)

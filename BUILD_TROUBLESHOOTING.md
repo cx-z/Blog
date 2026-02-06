@@ -221,7 +221,7 @@ brew install sqlite3
 **解决:**
 ```bash
 # 删除损坏的数据库文件
-rm -f build/blog.db
+rm -f db/blog.db
 
 # 重新运行服务器（会自动创建新数据库）
 ./bin/blog_server
