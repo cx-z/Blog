@@ -17,36 +17,6 @@ int main() {
     
     std::cout << "Database initialized successfully" << std::endl;
 
-    // ==================== 静态文件服务 ====================
-    // 提供前端静态文件
-    CROW_ROUTE(app, "/")
-    ([]() {
-        crow::response res;
-        res.code = 301;
-        res.add_header("Location", "/index.html");
-        return res;
-    });
-
-    // 提供任意静态文件
-    CROW_ROUTE(app, "/<path>")
-    ([](const crow::request& req, std::string path) {
-        std::string file_path = "../web/" + path;
-        
-        // 简单的安全检查，防止路径遍历
-        if (file_path.find("..") != std::string::npos) {
-            return crow::response(404, "Not Found");
-        }
-        
-        // 读取文件
-        std::ifstream file(file_path);
-        if (!file.is_open()) {
-            return crow::response(404, "Not Found");
-        }
-        
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        return crow::response(buffer.str());
-    });
 
     // ==================== API 路由 ====================
     
@@ -217,6 +187,42 @@ int main() {
         res.add_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.add_header("Access-Control-Allow-Headers", "Content-Type");
         return res;
+    });
+
+    // ==================== 静态文件服务 ====================
+    // 提供前端静态文件（放在最后以便 API 路由优先匹配）
+    CROW_ROUTE(app, "/")
+    ([]() {
+        crow::response res;
+        res.code = 301;
+        res.add_header("Location", "/index.html");
+        return res;
+    });
+
+    // 提供任意静态文件
+    CROW_ROUTE(app, "/<path>")
+    ([](const crow::request& req, std::string path) {
+        // 如果请求以 api 开头，交给 API 路由处理
+        if (path.rfind("api/", 0) == 0 || path == "api") {
+            return crow::response(404, "Not Found");
+        }
+
+        std::string file_path = "../web/" + path;
+        
+        // 简单的安全检查，防止路径遍历（仅检查请求路径部分）
+        if (path.find("..") != std::string::npos) {
+            return crow::response(404, "Not Found");
+        }
+        
+        // 读取文件
+        std::ifstream file(file_path);
+        if (!file.is_open()) {
+            return crow::response(404, "Not Found");
+        }
+        
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        return crow::response(buffer.str());
     });
 
     CROW_LOG_INFO << "Blog server starting on http://0.0.0.0:8080";
