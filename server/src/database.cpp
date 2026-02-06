@@ -49,7 +49,9 @@ bool Database::executeSQL(const std::string& sql) {
 }
 
 bool Database::insertPost(const std::string& title, const std::string& content, Post& out_post) {
-    long long timestamp = std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    long long timestamp = ms.count();
     
     std::string sql = "INSERT INTO posts (title, content, timestamp) VALUES (?, ?, ?);";
     sqlite3_stmt* stmt;

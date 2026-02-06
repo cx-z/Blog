@@ -27,13 +27,11 @@ int main() {
         crow::json::wvalue::list json_posts;
         
         for (const auto& post : posts) {
-            // 转换 nlohmann::json 到 crow::json::wvalue
             crow::json::wvalue item;
-            auto post_json = post.to_json();
             item["id"] = post.id;
-            item["title"] = post_json["title"].dump();
-            item["content"] = post_json["content"].dump();
-            item["created_at"] = post_json["created_at"].dump();
+            item["title"] = post.title;
+            item["content"] = post.content;
+            item["timestamp"] = post.timestamp;
             json_posts.push_back(item);
         }
         
@@ -65,12 +63,11 @@ int main() {
         }
         
         response["success"] = true;
-        auto post_json = post.to_json();
         crow::json::wvalue item;
         item["id"] = post.id;
-        item["title"] = post_json["title"].dump();
-        item["content"] = post_json["content"].dump();
-        item["created_at"] = post_json["created_at"].dump();
+        item["title"] = post.title;
+        item["content"] = post.content;
+        item["timestamp"] = post.timestamp;
         response["data"] = std::move(item);
         
         crow::response res(response);
@@ -107,12 +104,11 @@ int main() {
         
         if (success) {
             response["success"] = true;
-            auto post_json = new_post.to_json();
             crow::json::wvalue item;
             item["id"] = new_post.id;
-            item["title"] = post_json["title"].dump();
-            item["content"] = post_json["content"].dump();
-            item["created_at"] = post_json["created_at"].dump();
+            item["title"] = new_post.title;
+            item["content"] = new_post.content;
+            item["timestamp"] = new_post.timestamp;
             response["data"] = std::move(item);
             crow::response res(response);
             res.code = 201;
