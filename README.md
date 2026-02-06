@@ -1,5 +1,26 @@
 # 🚀 简易博客系统 - 完整编译和运行指南
 
+## 快速开始 ⚡
+
+如果您想立即开始，只需 3 条命令：
+
+```bash
+cd /Users/bytedance/Projects/Blog
+
+# 1. 下载依赖库
+./download-deps.sh
+
+# 2. 编译项目
+./build.sh
+
+# 3. 运行服务器
+cd build && ./bin/blog_server
+```
+
+详见 [QUICKSTART.md](QUICKSTART.md)
+
+---
+
 ## 系统要求
 
 - **操作系统**: macOS、Linux 或 Windows (MSVC/MinGW)
@@ -8,6 +29,7 @@
   - macOS: Clang (Xcode Command Line Tools)
   - Linux: GCC 7+ 或 Clang
 - **SQLite3**: 开发库
+- **curl**: 用于下载依赖（通常已预装）
 
 ## 依赖安装
 
@@ -29,13 +51,13 @@ sqlite3 --version
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y build-essential cmake sqlite3 libsqlite3-dev
+sudo apt-get install -y build-essential cmake sqlite3 libsqlite3-dev curl
 ```
 
 ### Linux (Fedora/RedHat)
 
 ```bash
-sudo dnf install cmake sqlite-devel
+sudo dnf install cmake sqlite-devel curl
 ```
 
 ## 项目结构
@@ -63,52 +85,78 @@ Blog/
 
 ## 编译步骤
 
-### 1. 进入项目目录
+### 重要：新的工作流程
+
+为了避免网络问题，项目采用了**两步工作流程**：
+
+#### 第 1 步：下载依赖库 (首次)
 
 ```bash
 cd /Users/bytedance/Projects/Blog
+
+# 这会下载 Crow 框架和 nlohmann/json 库到 build/deps/
+./download-deps.sh
 ```
 
-### 2. 创建构建目录
+**说明**：
+- 只需运行一次（除非更新依赖版本）
+- 这是手动 curl 下载，**不依赖 CMake FetchContent**
+- 所有依赖存放在 `build/deps/` 目录
+- 如果网络有问题，参考 [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md)
+
+#### 第 2 步：编译项目
 
 ```bash
+# 从项目根目录运行
+./build.sh
+
+# 或使用选项
+./build.sh --clean      # 清理后重新编译
+./build.sh --debug      # 编译 Debug 版本
+./build.sh --run        # 编译并自动运行
+```
+
+**说明**：
+- 编译时依赖已经准备好，不会下载任何文件
+- 第一次编译约 2-3 分钟
+- 增量编译（代码改变后）通常 < 1 分钟
+- 编译输出位置：`build/bin/blog_server`
+
+---
+
+## 传统编译方式（不推荐）
+
+如果您需要手动执行 CMake 命令：
+
+```bash
+cd /Users/bytedance/Projects/Blog
+
+# 1. 下载依赖（必须先执行）
+./download-deps.sh
+
+# 2. 创建构建目录
 mkdir -p build
 cd build
-```
 
-### 3. 运行 CMake 配置
-
-```bash
+# 3. 运行 CMake（依赖已准备，不会下载）
 cmake ../server
-```
 
-**注意**: 第一次运行时，CMake 会自动从网络下载 Crow 框架和 nlohmann/json 库。这可能需要几分钟。
-
-### 4. 编译项目
-
-```bash
+# 4. 编译项目
 cmake --build . --config Release
-```
 
-或使用 `make`（更快）：
-
-```bash
-make -j$(nproc)
-```
-
-### 5. 验证编译
-
-编译成功后，应该生成可执行文件：
-
-```bash
+# 5. 运行
 ./bin/blog_server
 ```
 
-如果看到 "Blog server starting on http://0.0.0.0:8080"，说明编译成功！
-
 ## 运行服务器
 
-### 启动后端服务
+### 快速启动（推荐）
+
+```bash
+./build.sh --run
+```
+
+### 手动启动
 
 ```bash
 cd /Users/bytedance/Projects/Blog/build

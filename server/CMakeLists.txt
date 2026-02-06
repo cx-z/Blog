@@ -10,49 +10,45 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 # 查找 SQLite3
 find_package(SQLite3 REQUIRED)
 
-# Crow 和 nlohmann_json 依赖
-include(FetchContent)
+# ==================== 手动管理依赖 ====================
+# 依赖由 download-deps.sh 脚本手动下载到以下目录：
+# - ../build/deps/crow_include/crow_all.hpp
+# - ../build/deps/json_include/nlohmann/json.hpp
 
-# 设置 FetchContent 使用国内镜像或官方稳定源
-set(FETCHCONTENT_QUIET OFF)  # 显示下载进度
+# 检查依赖文件是否存在
+# CMAKE_CURRENT_BINARY_DIR 是 build 目录，所以用 ./deps/
+set(CROW_FILE "${CMAKE_CURRENT_BINARY_DIR}/deps/crow_include/crow_all.hpp")
+set(JSON_FILE "${CMAKE_CURRENT_BINARY_DIR}/deps/json_include/nlohmann/json.hpp")
 
-# 下载 Crow - 使用 GitHub 原始文件 CDN
-FetchContent_Declare(crow
-    URL https://raw.githubusercontent.com/CrowCpp/Crow/v1.0+5/include/crow_all.hpp
-    DOWNLOAD_NO_EXTRACT ON
-    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/crow_include
-    DOWNLOAD_NAME crow_all.hpp
-)
-
-# 下载 nlohmann/json - 使用原始文件 CDN
-FetchContent_Declare(nlohmann_json
-    URL https://raw.githubusercontent.com/nlohmann/json/v3.11.2/single_include/nlohmann/json.hpp
-    DOWNLOAD_NO_EXTRACT ON
-    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/json_include
-    DOWNLOAD_NAME json.hpp
-)
-
-# 设置超时和重试
-set(FETCHCONTENT_UPDATES_DISCONNECTED OFF)
-
-# 下载依赖（添加错误处理）
-if(NOT crow_POPULATED)
-    message(STATUS "下载 Crow 框架...")
-    FetchContent_Populate(crow)
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/crow_include)
-    if(EXISTS "${crow_SOURCE_DIR}/crow_all.hpp")
-        file(COPY "${crow_SOURCE_DIR}/crow_all.hpp" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/crow_include")
-    endif()
+if(NOT EXISTS "${CROW_FILE}")
+    message(FATAL_ERROR 
+        "❌ 错误: Crow 框架文件未找到！\n"
+        "   文件应该在: ${CROW_FILE}\n"
+        "   \n"
+        "   请先运行下载脚本:\n"
+        "   cd ${CMAKE_CURRENT_BINARY_DIR}/..\n"
+        "   chmod +x ../download-deps.sh\n"
+        "   ../download-deps.sh\n"
+        "   \n"
+        "   然后重新运行 CMake"
+    )
 endif()
 
-if(NOT nlohmann_json_POPULATED)
-    message(STATUS "下载 nlohmann/json...")
-    FetchContent_Populate(nlohmann_json)
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/json_include/nlohmann)
-    if(EXISTS "${nlohmann_json_SOURCE_DIR}/json.hpp")
-        file(COPY "${nlohmann_json_SOURCE_DIR}/json.hpp" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/json_include/nlohmann")
-    endif()
+if(NOT EXISTS "${JSON_FILE}")
+    message(FATAL_ERROR 
+        "❌ 错误: nlohmann/json 文件未找到！\n"
+        "   文件应该在: ${JSON_FILE}\n"
+        "   \n"
+        "   请先运行下载脚本:\n"
+        "   cd ${CMAKE_CURRENT_BINARY_DIR}/..\n"
+        "   chmod +x ../download-deps.sh\n"
+        "   ../download-deps.sh"
+    )
 endif()
+
+message(STATUS "✓ 依赖文件已找到")
+message(STATUS "  • Crow: ${CROW_FILE}")
+message(STATUS "  • JSON: ${JSON_FILE}")
 
 # 添加可执行文件
 add_executable(blog_server
@@ -65,8 +61,8 @@ target_link_libraries(blog_server PRIVATE SQLite::SQLite3)
 
 # 包含头文件
 target_include_directories(blog_server PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}/crow_include
-    ${CMAKE_CURRENT_BINARY_DIR}/json_include
+    ${CMAKE_CURRENT_BINARY_DIR}/deps/crow_include
+    ${CMAKE_CURRENT_BINARY_DIR}/deps/json_include
 )
 
 # 设置输出目录

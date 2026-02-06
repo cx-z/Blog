@@ -1,4 +1,4 @@
-# 🚀 快速启动指南 (3分钟上手)
+# 🚀 快速启动指南 (5分钟上手)
 
 ## 前置要求
 
@@ -7,7 +7,7 @@
 ✅ CMake 3.10+
 ✅ SQLite3
 
-## ⚡ 快速启动 (3 步)
+## ⚡ 快速启动 (4 步)
 
 ### 步骤 1: 安装依赖 (仅首次)
 
@@ -16,10 +16,44 @@
 brew install cmake sqlite3
 ```
 
-### 步骤 2: 编译项目 (2-3 分钟)
+### 步骤 2: 下载依赖库 (1-2 分钟)
+
+博客系统使用两个 C++ 库，需要先下载它们：
 
 ```bash
 cd /Users/bytedance/Projects/Blog
+chmod +x download-deps.sh
+./download-deps.sh
+```
+
+**这个脚本会下载:**
+- **Crow 框架** (轻量级 HTTP 服务器)
+- **nlohmann/json** (JSON 处理库)
+
+**预期输出:**
+```
+==========================================
+  📥 下载博客系统依赖文件
+==========================================
+
+[1/2] 下载 Crow 框架...
+  ✓ Crow 下载成功
+  位置: /Users/bytedance/Projects/Blog/build/deps/crow_include/crow_all.hpp
+
+[2/2] 下载 nlohmann/json...
+  ✓ JSON 下载成功
+  位置: /Users/bytedance/Projects/Blog/build/deps/json_include/nlohmann/json.hpp
+
+==========================================
+✓ 所有依赖下载完成！
+==========================================
+```
+
+### 步骤 3: 编译项目 (2-3 分钟)
+
+现在依赖已准备好，可以编译：
+
+```bash
 chmod +x build.sh
 ./build.sh
 ```
@@ -27,17 +61,24 @@ chmod +x build.sh
 **预期输出:**
 ```
 ========================================
-  简易博客系统 - 快速启动脚本
-==========================================
-✓ 依赖检查完成
-📁 创建构建目录...
-🔧 运行 CMake 配置...
-🔨 编译项目...
-==========================================
-  ✓ 编译完成！
+  📚 博客系统编译
+========================================
+
+📋 检查依赖文件...
+✓ 依赖文件完整
+
+🔧 CMake 配置 (Release 版本)...
+✓ 配置完成
+
+⚙️  编译中...
+✓ 编译成功
+
+========================================
+✓ 编译完成！
+========================================
 ```
 
-### 步骤 3: 启动服务器 (1 秒)
+### 步骤 4: 启动服务器 (1 秒)
 
 ```bash
 cd /Users/bytedance/Projects/Blog/build
@@ -135,10 +176,10 @@ rm -rf build
 
 # 方案 2：如果仍然失败，手动下载依赖
 mkdir -p build/{crow_include,json_include/nlohmann}
-curl -L https://raw.githubusercontent.com/CrowCpp/Crow/v1.0+5/include/crow_all.hpp \
-     -o build/crow_include/crow_all.hpp
+curl -L https://github.com/CrowCpp/Crow/releases/download/v1.2.0/crow_all.h \
+     -o build/deps/crow_include/crow_all.hpp
 curl -L https://raw.githubusercontent.com/nlohmann/json/v3.11.2/single_include/nlohmann/json.hpp \
-     -o build/json_include/nlohmann/json.hpp
+     -o build/deps/json_include/nlohmann/json.hpp
 ```
 
 ### ❌ 问题: "Address already in use"
