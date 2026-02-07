@@ -11,7 +11,8 @@ async function loadPosts() {
         if (result.success && result.data.length > 0) {
             container.innerHTML = result.data.map(post => `
                 <div class="card mb-4 post-card">
-                    <div class="card-body">
+                    <div class="card-body position-relative">
+                        <button class="btn-delete-post" onclick="deletePost(${post.id}); return false;" title="删除文章">×</button>
                         <h5 class="card-title">
                             <a href="#" onclick="showPost(${post.id}); return false;">
                                 ${escapeHtml(post.title)}
@@ -100,4 +101,26 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function deletePost(id) {
+    // 显示确认对话框
+    if (confirm('确定要删除这篇文章吗？删除后无法恢复。')) {
+        fetch(`/api/posts/${id}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // 删除成功，重新加载文章列表
+                loadPosts();
+            } else {
+                alert('删除失败：' + (result.message || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting post:', error);
+            alert('删除失败，请稍后重试');
+        });
+    }
 }
