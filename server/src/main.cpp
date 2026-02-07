@@ -2,20 +2,54 @@
 #include "database.h"
 #include <iostream>
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 
-int main() {
+int main(int argc, char* argv[]) {
     crow::SimpleApp app;
-    
-    // 初始化数据库
-    std::string db_path = "../db/blog.db";
+
+    namespace fs = std::filesystem;
+
+    // 根据可执行文件位置解析项目根目录（支持 build/bin 与 直接执行两种方式）
+    fs::path exe_path;
+    if (argc > 0) {
+        try {
+            exe_path = fs::canonical(argv[0]);
+        } catch (...) {
+            exe_path = fs::absolute(argv[0]);
+        }
+    } else {
+        exe_path = fs::current_path();
+    }
+
+    fs::path exe_dir = exe_path.parent_path();
+    fs::path project_root;
+    if (exe_dir.filename() == "bin") {
+        // 处理 build/bin/blog_server 与 project_root/bin/blog_server 两种情况
+        if (exe_dir.parent_path().filename() == "build") {
+            project_root = exe_dir.parent_path().parent_path();
+        } else {
+            project_root = exe_dir.parent_path();
+        }
+    } else {
+        project_root = fs::current_path();
+    }
+
+    // 初始化数据库（使用项目根目录下的 db/blog.db）
+    std::string db_path = (project_root / "db" / "blog.db").string();
+    std::cout << "Resolved project root: " << project_root << std::endl;
+    std::cout << "Resolved db path: " << db_path << std::endl;
     Database db(db_path);
-    
+
     if (!db.init()) {
         std::cerr << "Failed to initialize database" << std::endl;
         return 1;
     }
-    
+
     std::cout << "Database initialized successfully" << std::endl;
+
+    // 静态文件根目录
+    std::string web_base = (project_root / "web").string();
 
 
     // ==================== API 路由 ====================
@@ -197,13 +231,13 @@ int main() {
 
     // 提供任意静态文件
     CROW_ROUTE(app, "/<path>")
-    ([](const crow::request& req, std::string path) {
+    ([&web_base](const crow::request& req, std::string path) {
         // 如果请求以 api 开头，交给 API 路由处理
         if (path.rfind("api/", 0) == 0 || path == "api") {
             return crow::response(404, "Not Found");
         }
 
-        std::string file_path = "../web/" + path;
+        std::string file_path = web_base + "/" + path;
         
         // 简单的安全检查，防止路径遍历（仅检查请求路径部分）
         if (path.find("..") != std::string::npos) {
