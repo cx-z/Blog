@@ -10,6 +10,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 # 查找 SQLite3
 find_package(SQLite3 REQUIRED)
 
+# 查找 OpenSSL（用于加密和 JWT）
+find_package(OpenSSL REQUIRED)
+
 # ==================== 手动管理依赖 ====================
 # 依赖由 download-deps.sh 脚本手动下载到以下目录：
 # - ../build/deps/crow_include/crow_all.hpp
@@ -57,7 +60,7 @@ add_executable(blog_server
 )
 
 # 链接库
-target_link_libraries(blog_server PRIVATE SQLite::SQLite3)
+target_link_libraries(blog_server PRIVATE SQLite::SQLite3 OpenSSL::Crypto OpenSSL::SSL)
 
 # 包含头文件
 target_include_directories(blog_server PRIVATE

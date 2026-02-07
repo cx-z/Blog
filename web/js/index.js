@@ -1,5 +1,17 @@
-// 页面加载时获取文章列表
-document.addEventListener('DOMContentLoaded', loadPosts);
+// 页面加载时检查认证并获取文章列表
+document.addEventListener('DOMContentLoaded', async function() {
+    // 检查用户是否已登录
+    const isAuthenticated = await authManager.checkAuthRequired();
+    if (!isAuthenticated) {
+        return;
+    }
+    
+    // 显示用户信息和登出按钮
+    showLogoutButton();
+    
+    // 加载文章列表
+    loadPosts();
+});
 
 async function loadPosts() {
     const container = document.getElementById('posts-container');
@@ -103,24 +115,24 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function deletePost(id) {
+async function deletePost(id) {
     // 显示确认对话框
     if (confirm('确定要删除这篇文章吗？删除后无法恢复。')) {
-        fetch(`/api/posts/${id}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(result => {
+        try {
+            const response = await authenticatedFetch(`/api/posts/${id}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            
             if (result.success) {
                 // 删除成功，重新加载文章列表
                 loadPosts();
             } else {
                 alert('删除失败：' + (result.message || '未知错误'));
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error deleting post:', error);
             alert('删除失败，请稍后重试');
-        });
+        }
     }
 }

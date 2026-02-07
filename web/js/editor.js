@@ -1,3 +1,15 @@
+// 页面加载时检查认证
+document.addEventListener('DOMContentLoaded', async function() {
+    // 检查用户是否已登录
+    const isAuthenticated = await authManager.checkAuthRequired();
+    if (!isAuthenticated) {
+        return;
+    }
+    
+    // 显示用户信息和登出按钮
+    showLogoutButton();
+});
+
 // 表单提交处理
 document.getElementById('post-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -18,7 +30,7 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
     }
     
     try {
-        const response = await fetch('/api/posts', {
+        const response = await authenticatedFetch('/api/posts', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -49,7 +61,7 @@ document.getElementById('post-form').addEventListener('submit', async (e) => {
         }
     } catch (error) {
         console.error('Error:', error);
-        showError('网络错误，请检查服务器是否正在运行');
+        showError('网络错误或会话已过期，请重新登录');
     }
 });
 

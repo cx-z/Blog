@@ -1,5 +1,7 @@
 #include "crow_all.hpp"
 #include "database.h"
+#include "crypto_utils.h"
+#include "jwt_utils.h"
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -53,6 +55,217 @@ int main(int argc, char* argv[]) {
 
 
     // ==================== API 路由 ====================
+    
+    // ==================== 认证接口 ====================
+    
+    // POST /api/auth/register - 用户注册
+    CROW_ROUTE(app, "/api/auth/register").methods("POST"_method)
+    ([&db](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+        
+        if (!body || !body.has("username") || !body.has("password")) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing username or password";
+            
+            crow::response res(error);
+            res.code = 400;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        std::string username = body["username"].s();
+        std::string password = body["password"].s();
+        
+        // 验证账号不为空
+        if (username.empty() || username.length() < 3) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Username must be at least 3 characters";
+            
+            crow::response res(error);
+            res.code = 400;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        // 验证密码强度
+        if (password.empty() || password.length() < 6) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Password must be at least 6 characters";
+            
+            crow::response res(error);
+            res.code = 400;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        // 检查账号是否已存在
+        if (db.userExists(username)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Username already exists";
+            
+            crow::response res(error);
+            res.code = 409;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        // 生成 salt 并哈希密码
+        std::string salt = CryptoUtils::generateSalt();
+        std::string salt_hex = CryptoUtils::saltToHex(salt);
+        std::string password_hash = CryptoUtils::hashPassword(password, salt);
+        
+        // 将用户写入数据库
+        int user_id;
+        if (!db.insertUser(username, password_hash, salt_hex, user_id)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Failed to register user";
+            
+            crow::response res(error);
+            res.code = 500;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        // 注册成功，返回用户 ID 和 JWT Token
+        std::string token = JwtUtils::generateToken(user_id, username);
+        
+        crow::json::wvalue response;
+        response["success"] = true;
+        response["message"] = "Registration successful";
+        response["data"]["user_id"] = user_id;
+        response["data"]["username"] = username;
+        response["data"]["token"] = token;
+        
+        crow::response res(response);
+        res.code = 201;
+        res.add_header("Content-Type", "application/json");
+        res.add_header("Access-Control-Allow-Origin", "*");
+        return res;
+    });
+    
+    // POST /api/auth/login - 用户登录
+    CROW_ROUTE(app, "/api/auth/login").methods("POST"_method)
+    ([&db](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+        
+        if (!body || !body.has("username") || !body.has("password")) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing username or password";
+            
+            crow::response res(error);
+            res.code = 400;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        std::string username = body["username"].s();
+        std::string password = body["password"].s();
+        
+        // 查询用户
+        User user = db.getUserByUsername(username);
+        
+        if (user.id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid username or password";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        // 验证密码
+        if (!CryptoUtils::verifyPassword(password, user.password_hash, user.salt)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid username or password";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        // 登录成功，生成 JWT Token
+        std::string token = JwtUtils::generateToken(user.id, user.username);
+        
+        crow::json::wvalue response;
+        response["success"] = true;
+        response["message"] = "Login successful";
+        response["data"]["user_id"] = user.id;
+        response["data"]["username"] = user.username;
+        response["data"]["token"] = token;
+        
+        crow::response res(response);
+        res.code = 200;
+        res.add_header("Content-Type", "application/json");
+        res.add_header("Access-Control-Allow-Origin", "*");
+        return res;
+    });
+    
+    // POST /api/auth/verify - 验证 JWT Token
+    CROW_ROUTE(app, "/api/auth/verify").methods("POST"_method)
+    ([](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+        
+        if (!body || !body.has("token")) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing token";
+            
+            crow::response res(error);
+            res.code = 400;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        std::string token = body["token"].s();
+        int user_id = JwtUtils::verifyToken(token);
+        
+        if (user_id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        json payload = JwtUtils::getTokenPayload(token);
+        
+        crow::json::wvalue response;
+        response["success"] = true;
+        response["message"] = "Token is valid";
+        response["data"]["user_id"] = user_id;
+        response["data"]["username"] = payload["username"].get<std::string>();
+        
+        crow::response res(response);
+        res.code = 200;
+        res.add_header("Content-Type", "application/json");
+        res.add_header("Access-Control-Allow-Origin", "*");
+        return res;
+    });
+    
+    // ==================== 文章接口 ====================
     
     // GET /api/posts - 获取所有文章
     CROW_ROUTE(app, "/api/posts")
@@ -110,9 +323,38 @@ int main(int argc, char* argv[]) {
         return res;
     });
 
-    // POST /api/posts - 创建新文章
+    // POST /api/posts - 创建新文章（需要认证）
     CROW_ROUTE(app, "/api/posts").methods("POST"_method)
     ([&db](const crow::request& req) {
+        // 验证 JWT Token
+        std::string auth_header = req.get_header_value("Authorization");
+        if (auth_header.empty() || auth_header.substr(0, 7) != "Bearer ") {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing or invalid Authorization header";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        std::string token = auth_header.substr(7);
+        int user_id = JwtUtils::verifyToken(token);
+        
+        if (user_id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
         auto body = crow::json::load(req.body);
         
         if (!body || !body.has("title") || !body.has("content")) {
@@ -160,9 +402,38 @@ int main(int argc, char* argv[]) {
         }
     });
 
-    // PUT /api/posts/:id - 更新文章
+    // PUT /api/posts/:id - 更新文章（需要认证）
     CROW_ROUTE(app, "/api/posts/<int>").methods("PUT"_method)
     ([&db](const crow::request& req, int id) {
+        // 验证 JWT Token
+        std::string auth_header = req.get_header_value("Authorization");
+        if (auth_header.empty() || auth_header.substr(0, 7) != "Bearer ") {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing or invalid Authorization header";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        std::string token = auth_header.substr(7);
+        int user_id = JwtUtils::verifyToken(token);
+        
+        if (user_id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
         auto body = crow::json::load(req.body);
         
         if (!body || !body.has("title") || !body.has("content")) {
@@ -194,9 +465,38 @@ int main(int argc, char* argv[]) {
         return res;
     });
 
-    // DELETE /api/posts/:id - 删除文章
+    // DELETE /api/posts/:id - 删除文章（需要认证）
     CROW_ROUTE(app, "/api/posts/<int>").methods("DELETE"_method)
-    ([&db](int id) {
+    ([&db](const crow::request& req, int id) {
+        // 验证 JWT Token
+        std::string auth_header = req.get_header_value("Authorization");
+        if (auth_header.empty() || auth_header.substr(0, 7) != "Bearer ") {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing or invalid Authorization header";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
+        std::string token = auth_header.substr(7);
+        int user_id = JwtUtils::verifyToken(token);
+        
+        if (user_id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+        
         bool success = db.deletePost(id);
         
         crow::json::wvalue response;

@@ -31,6 +31,14 @@ bool Database::createTablesIfNotExist() {
             content TEXT NOT NULL,
             timestamp INTEGER NOT NULL
         );
+        
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            created_at INTEGER NOT NULL
+        );
     )";
     
     return executeSQL(sql);
@@ -153,4 +161,74 @@ bool Database::deletePost(int id) {
     bool success = (sqlite3_step(stmt) == SQLITE_DONE);
     sqlite3_finalize(stmt);
     return success;
+}
+
+// ==================== 用户操作 ====================
+
+bool Database::insertUser(const std::string& username, const std::string& password_hash,
+                          const std::string& salt, int& out_user_id) {
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    long long created_at = ms.count();
+    
+    std::string sql = "INSERT INTO users (username, password_hash, salt, created_at) VALUES (?, ?, ?, ?);";
+    sqlite3_stmt* stmt;
+    
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, password_hash.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, salt.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int64(stmt, 4, created_at);
+    
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Step failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+    
+    out_user_id = (int)sqlite3_last_insert_rowid(db);
+    sqlite3_finalize(stmt);
+    return true;
+}
+
+User Database::getUserByUsername(const std::string& username) {
+    User user{-1, "", "", "", 0};
+    std::string sql = "SELECT id, username, password_hash, salt, created_at FROM users WHERE username = ?;";
+    sqlite3_stmt* stmt;
+    
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        return user;
+    }
+    
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+    
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        user.id = sqlite3_column_int(stmt, 0);
+        user.username = std::string((const char*)sqlite3_column_text(stmt, 1));
+        user.password_hash = std::string((const char*)sqlite3_column_text(stmt, 2));
+        user.salt = std::string((const char*)sqlite3_column_text(stmt, 3));
+        user.created_at = sqlite3_column_int64(stmt, 4);
+    }
+    
+    sqlite3_finalize(stmt);
+    return user;
+}
+
+bool Database::userExists(const std::string& username) {
+    std::string sql = "SELECT 1 FROM users WHERE username = ? LIMIT 1;";
+    sqlite3_stmt* stmt;
+    
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        return false;
+    }
+    
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+    
+    bool exists = (sqlite3_step(stmt) == SQLITE_ROW);
+    sqlite3_finalize(stmt);
+    return exists;
 }
