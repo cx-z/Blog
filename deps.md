@@ -22,3 +22,4 @@ brew install cmake sqlite3 asio
 - cmake
 - sqlite3
 - asio
+- db-browser-for-sqlite
