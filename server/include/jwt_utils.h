@@ -102,8 +102,8 @@ private:
     }
     
 public:
-    // 生成 JWT Token
-    static std::string generateToken(int userId, const std::string& username) {
+    // 生成 JWT Token（包含 role）
+    static std::string generateToken(int userId, const std::string& username, const std::string& role) {
         // Header
         json header;
         header["alg"] = "HS256";
@@ -115,6 +115,7 @@ public:
         json payload;
         payload["sub"] = userId;
         payload["username"] = username;
+        payload["role"] = role;
         payload["iat"] = std::time(nullptr);
         payload["exp"] = std::time(nullptr) + EXPIRATION_TIME;
         std::string payload_str = payload.dump();

@@ -136,14 +136,15 @@ int main(int argc, char* argv[]) {
             return res;
         }
         
-        // 注册成功，返回用户 ID 和 JWT Token
-        std::string token = JwtUtils::generateToken(user_id, username);
+        // 注册成功，返回用户 ID、角色 和 JWT Token
+        std::string token = JwtUtils::generateToken(user_id, username, std::string("user"));
         
         crow::json::wvalue response;
         response["success"] = true;
         response["message"] = "Registration successful";
         response["data"]["user_id"] = user_id;
         response["data"]["username"] = username;
+        response["data"]["role"] = "user";
         response["data"]["token"] = token;
         
         crow::response res(response);
@@ -201,14 +202,15 @@ int main(int argc, char* argv[]) {
             return res;
         }
         
-        // 登录成功，生成 JWT Token
-        std::string token = JwtUtils::generateToken(user.id, user.username);
+        // 登录成功，生成 JWT Token（包含 role）
+        std::string token = JwtUtils::generateToken(user.id, user.username, user.role);
         
         crow::json::wvalue response;
         response["success"] = true;
         response["message"] = "Login successful";
         response["data"]["user_id"] = user.id;
         response["data"]["username"] = user.username;
+        response["data"]["role"] = user.role;
         response["data"]["token"] = token;
         
         crow::response res(response);
@@ -257,6 +259,7 @@ int main(int argc, char* argv[]) {
         response["message"] = "Token is valid";
         response["data"]["user_id"] = user_id;
         response["data"]["username"] = payload["username"].get<std::string>();
+        response["data"]["role"] = payload.contains("role") ? payload["role"].get<std::string>() : std::string("user");
         
         crow::response res(response);
         res.code = 200;
@@ -267,34 +270,100 @@ int main(int argc, char* argv[]) {
     
     // ==================== 文章接口 ====================
     
-    // GET /api/posts - 获取所有文章
+    // GET /api/posts - 获取所有文章（需要认证；普通用户只看自己的文章，管理员看全部）
     CROW_ROUTE(app, "/api/posts")
-    ([&db]() {
-        auto posts = db.getAllPosts();
+    ([&db](const crow::request& req) {
+        std::string auth_header = req.get_header_value("Authorization");
+        if (auth_header.empty() || auth_header.substr(0, 7) != "Bearer ") {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing or invalid Authorization header";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        std::string token = auth_header.substr(7);
+        int user_id = JwtUtils::verifyToken(token);
+        if (user_id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        json payload = JwtUtils::getTokenPayload(token);
+        std::string role = payload.contains("role") ? payload["role"].get<std::string>() : std::string("user");
+
+        std::vector<Post> posts;
+        if (role == "admin") {
+            posts = db.getAllPosts();
+        } else {
+            posts = db.getPostsByUser(user_id);
+        }
+
         crow::json::wvalue::list json_posts;
-        
         for (const auto& post : posts) {
             crow::json::wvalue item;
             item["id"] = post.id;
             item["title"] = post.title;
             item["content"] = post.content;
             item["timestamp"] = post.timestamp;
+            item["author"] = post.author;
             json_posts.push_back(item);
         }
-        
+
         crow::json::wvalue response;
         response["success"] = true;
         response["data"] = std::move(json_posts);
-        
+
         crow::response res(response);
         res.add_header("Content-Type", "application/json");
         res.add_header("Access-Control-Allow-Origin", "*");
         return res;
     });
 
-    // GET /api/posts/:id - 获取单篇文章
+    // GET /api/posts/:id - 获取单篇文章（需要认证且仅限作者或管理员）
     CROW_ROUTE(app, "/api/posts/<int>")
-    ([&db](int id) {
+    ([&db](const crow::request& req, int id) {
+        std::string auth_header = req.get_header_value("Authorization");
+        if (auth_header.empty() || auth_header.substr(0, 7) != "Bearer ") {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Missing or invalid Authorization header";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        std::string token = auth_header.substr(7);
+        int user_id = JwtUtils::verifyToken(token);
+        if (user_id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+            
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        json payload = JwtUtils::getTokenPayload(token);
+        std::string role = payload.contains("role") ? payload["role"].get<std::string>() : std::string("user");
+
         Post post = db.getPostById(id);
         
         crow::json::wvalue response;
@@ -308,6 +377,17 @@ int main(int argc, char* argv[]) {
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
         }
+
+        // 仅作者或管理员可查看（遗留文章 user_id 为 -1/0 不对普通用户开放）
+        if (post.user_id != user_id && role != "admin") {
+            response["success"] = false;
+            response["message"] = "Forbidden";
+            crow::response res(response);
+            res.code = 403;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
         
         response["success"] = true;
         crow::json::wvalue item;
@@ -315,6 +395,7 @@ int main(int argc, char* argv[]) {
         item["title"] = post.title;
         item["content"] = post.content;
         item["timestamp"] = post.timestamp;
+        item["author"] = post.author;
         response["data"] = std::move(item);
         
         crow::response res(response);
@@ -373,6 +454,7 @@ int main(int argc, char* argv[]) {
         bool success = db.insertPost(
             body["title"].s(),
             body["content"].s(),
+            user_id,
             new_post
         );
         
@@ -385,6 +467,7 @@ int main(int argc, char* argv[]) {
             item["title"] = new_post.title;
             item["content"] = new_post.content;
             item["timestamp"] = new_post.timestamp;
+            item["author"] = new_post.author;
             response["data"] = std::move(item);
             crow::response res(response);
             res.code = 201;
@@ -433,6 +516,9 @@ int main(int argc, char* argv[]) {
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
         }
+
+        json payload = JwtUtils::getTokenPayload(token);
+        std::string role = payload.contains("role") ? payload["role"].get<std::string>() : std::string("user");
         
         auto body = crow::json::load(req.body);
         
@@ -443,6 +529,29 @@ int main(int argc, char* argv[]) {
             
             crow::response res(error);
             res.code = 400;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        Post post = db.getPostById(id);
+        if (post.id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Post not found";
+            crow::response res(error);
+            res.code = 404;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        if (post.user_id != user_id && role != "admin") {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Forbidden";
+            crow::response res(error);
+            res.code = 403;
             res.add_header("Content-Type", "application/json");
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
@@ -492,6 +601,32 @@ int main(int argc, char* argv[]) {
             
             crow::response res(error);
             res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        json payload = JwtUtils::getTokenPayload(token);
+        std::string role = payload.contains("role") ? payload["role"].get<std::string>() : std::string("user");
+
+        Post post = db.getPostById(id);
+        if (post.id == -1) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Post not found";
+            crow::response res(error);
+            res.code = 404;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        if (post.user_id != user_id && role != "admin") {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Forbidden";
+            crow::response res(error);
+            res.code = 403;
             res.add_header("Content-Type", "application/json");
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;

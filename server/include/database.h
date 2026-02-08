@@ -13,13 +13,17 @@ struct Post {
     std::string title;
     std::string content;
     long long timestamp;
+    int user_id; // 作者用户 ID（可能为 -1 表示未知）
+    std::string author; // 作者用户名（便于前端展示）
 
     json to_json() const {
         return json{
             {"id", id},
             {"title", title},
             {"content", content},
-            {"timestamp", timestamp}
+            {"timestamp", timestamp},
+            {"user_id", user_id},
+            {"author", author}
         };
     }
 };
@@ -30,6 +34,7 @@ struct User {
     std::string password_hash;
     std::string salt;
     long long created_at;
+    std::string role;
 };
 
 class Database {
@@ -41,11 +46,12 @@ public:
     bool createTablesIfNotExist();
     
     // 文章 CRUD 操作
-    bool insertPost(const std::string& title, const std::string& content, Post& out_post);
+    bool insertPost(const std::string& title, const std::string& content, int user_id, Post& out_post);
     std::vector<Post> getAllPosts();
     Post getPostById(int id);
     bool updatePost(int id, const std::string& title, const std::string& content);
     bool deletePost(int id);
+    std::vector<Post> getPostsByUser(int user_id);
     
     // 用户操作
     bool insertUser(const std::string& username, const std::string& password_hash, 

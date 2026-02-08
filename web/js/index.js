@@ -17,7 +17,7 @@ async function loadPosts() {
     const container = document.getElementById('posts-container');
     
     try {
-        const response = await fetch('/api/posts');
+        const response = await authenticatedFetch('/api/posts');
         const result = await response.json();
         
         if (result.success && result.data.length > 0) {
@@ -54,7 +54,7 @@ async function loadPosts() {
 function showPost(id) {
     // 这里可以使用模态框显示完整内容，或者跳转到详情页
     // 简单起见，使用 alert 展示
-    fetch(`/api/posts/${id}`)
+    authenticatedFetch(`/api/posts/${id}`)
         .then(response => response.json())
         .then(result => {
             if (result.success) {

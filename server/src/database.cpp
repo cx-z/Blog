@@ -29,7 +29,8 @@ bool Database::createTablesIfNotExist() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             content TEXT NOT NULL,
-            timestamp INTEGER NOT NULL
+            timestamp INTEGER NOT NULL,
+            user_id INTEGER
         );
         
         CREATE TABLE IF NOT EXISTS users (
@@ -37,11 +38,35 @@ bool Database::createTablesIfNotExist() {
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             salt TEXT NOT NULL,
-            created_at INTEGER NOT NULL
+            created_at INTEGER NOT NULL,
+            role TEXT DEFAULT 'user'
         );
     )";
-    
-    return executeSQL(sql);
+
+    if (!executeSQL(sql)) return false;
+
+    // 如果 posts 表存在但没有 user_id 字段，尝试添加该列（兼容旧数据库）
+    // 查询表结构以判断列是否存在
+    bool has_user_id = false;
+    const char* pragma_sql = "PRAGMA table_info(posts);";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, pragma_sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* colname = sqlite3_column_text(stmt, 1);
+            if (colname && std::string(reinterpret_cast<const char*>(colname)) == "user_id") {
+                has_user_id = true;
+                break;
+            }
+        }
+    }
+    if (stmt) sqlite3_finalize(stmt);
+
+    if (!has_user_id) {
+        // 添加列，若失败则继续（兼容性考虑）
+        executeSQL("ALTER TABLE posts ADD COLUMN user_id INTEGER;");
+    }
+
+    return true;
 }
 
 bool Database::executeSQL(const std::string& sql) {
@@ -56,12 +81,12 @@ bool Database::executeSQL(const std::string& sql) {
     return true;
 }
 
-bool Database::insertPost(const std::string& title, const std::string& content, Post& out_post) {
+bool Database::insertPost(const std::string& title, const std::string& content, int user_id, Post& out_post) {
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch());
     long long timestamp = ms.count();
     
-    std::string sql = "INSERT INTO posts (title, content, timestamp) VALUES (?, ?, ?);";
+    std::string sql = "INSERT INTO posts (title, content, timestamp, user_id) VALUES (?, ?, ?, ?);";
     sqlite3_stmt* stmt;
     
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -72,6 +97,7 @@ bool Database::insertPost(const std::string& title, const std::string& content, 
     sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, content.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_int64(stmt, 3, timestamp);
+    sqlite3_bind_int(stmt, 4, user_id);
     
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         std::cerr << "Step failed: " << sqlite3_errmsg(db) << std::endl;
@@ -83,6 +109,8 @@ bool Database::insertPost(const std::string& title, const std::string& content, 
     out_post.title = title;
     out_post.content = content;
     out_post.timestamp = timestamp;
+    out_post.user_id = user_id;
+    out_post.author = "";
     
     sqlite3_finalize(stmt);
     return true;
@@ -90,44 +118,59 @@ bool Database::insertPost(const std::string& title, const std::string& content, 
 
 std::vector<Post> Database::getAllPosts() {
     std::vector<Post> posts;
-    std::string sql = "SELECT id, title, content, timestamp FROM posts ORDER BY timestamp DESC;";
+    // 使用 LEFT JOIN 获取作者用户名（若存在）
+    std::string sql = R"(
+        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.id
+        ORDER BY p.timestamp DESC;
+    )";
     sqlite3_stmt* stmt;
-    
+
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         return posts;
     }
-    
+
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         Post post;
         post.id = sqlite3_column_int(stmt, 0);
-        post.title = std::string((const char*)sqlite3_column_text(stmt, 1));
-        post.content = std::string((const char*)sqlite3_column_text(stmt, 2));
+        post.title = sqlite3_column_text(stmt, 1) ? std::string((const char*)sqlite3_column_text(stmt, 1)) : "";
+        post.content = sqlite3_column_text(stmt, 2) ? std::string((const char*)sqlite3_column_text(stmt, 2)) : "";
         post.timestamp = sqlite3_column_int64(stmt, 3);
+        post.user_id = sqlite3_column_int(stmt, 4);
+        post.author = sqlite3_column_text(stmt, 5) ? std::string((const char*)sqlite3_column_text(stmt, 5)) : std::string("");
         posts.push_back(post);
     }
-    
+
     sqlite3_finalize(stmt);
     return posts;
 }
 
 Post Database::getPostById(int id) {
-    Post post{-1, "", "", 0};
-    std::string sql = "SELECT id, title, content, timestamp FROM posts WHERE id = ?;";
+    Post post{-1, "", "", 0, -1, ""};
+    std::string sql = R"(
+        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.id = ?;
+    )";
     sqlite3_stmt* stmt;
-    
+
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         return post;
     }
-    
+
     sqlite3_bind_int(stmt, 1, id);
-    
+
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         post.id = sqlite3_column_int(stmt, 0);
-        post.title = std::string((const char*)sqlite3_column_text(stmt, 1));
-        post.content = std::string((const char*)sqlite3_column_text(stmt, 2));
+        post.title = sqlite3_column_text(stmt, 1) ? std::string((const char*)sqlite3_column_text(stmt, 1)) : "";
+        post.content = sqlite3_column_text(stmt, 2) ? std::string((const char*)sqlite3_column_text(stmt, 2)) : "";
         post.timestamp = sqlite3_column_int64(stmt, 3);
+        post.user_id = sqlite3_column_int(stmt, 4);
+        post.author = sqlite3_column_text(stmt, 5) ? std::string((const char*)sqlite3_column_text(stmt, 5)) : std::string("");
     }
-    
+
     sqlite3_finalize(stmt);
     return post;
 }
@@ -163,6 +206,38 @@ bool Database::deletePost(int id) {
     return success;
 }
 
+std::vector<Post> Database::getPostsByUser(int user_id) {
+    std::vector<Post> posts;
+    std::string sql = R"(
+        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.user_id = ?
+        ORDER BY p.timestamp DESC;
+    )";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        return posts;
+    }
+
+    sqlite3_bind_int(stmt, 1, user_id);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        Post post;
+        post.id = sqlite3_column_int(stmt, 0);
+        post.title = sqlite3_column_text(stmt, 1) ? std::string((const char*)sqlite3_column_text(stmt, 1)) : "";
+        post.content = sqlite3_column_text(stmt, 2) ? std::string((const char*)sqlite3_column_text(stmt, 2)) : "";
+        post.timestamp = sqlite3_column_int64(stmt, 3);
+        post.user_id = sqlite3_column_int(stmt, 4);
+        post.author = sqlite3_column_text(stmt, 5) ? std::string((const char*)sqlite3_column_text(stmt, 5)) : std::string("");
+        posts.push_back(post);
+    }
+
+    sqlite3_finalize(stmt);
+    return posts;
+}
+
 // ==================== 用户操作 ====================
 
 bool Database::insertUser(const std::string& username, const std::string& password_hash,
@@ -171,7 +246,7 @@ bool Database::insertUser(const std::string& username, const std::string& passwo
         std::chrono::system_clock::now().time_since_epoch());
     long long created_at = ms.count();
     
-    std::string sql = "INSERT INTO users (username, password_hash, salt, created_at) VALUES (?, ?, ?, ?);";
+    std::string sql = "INSERT INTO users (username, password_hash, salt, created_at, role) VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt* stmt;
     
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -183,6 +258,7 @@ bool Database::insertUser(const std::string& username, const std::string& passwo
     sqlite3_bind_text(stmt, 2, password_hash.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 3, salt.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_int64(stmt, 4, created_at);
+    sqlite3_bind_text(stmt, 5, "user", -1, SQLITE_STATIC);
     
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         std::cerr << "Step failed: " << sqlite3_errmsg(db) << std::endl;
@@ -196,8 +272,8 @@ bool Database::insertUser(const std::string& username, const std::string& passwo
 }
 
 User Database::getUserByUsername(const std::string& username) {
-    User user{-1, "", "", "", 0};
-    std::string sql = "SELECT id, username, password_hash, salt, created_at FROM users WHERE username = ?;";
+    User user{-1, "", "", "", 0, "user"};
+    std::string sql = "SELECT id, username, password_hash, salt, created_at, role FROM users WHERE username = ?;";
     sqlite3_stmt* stmt;
     
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -208,10 +284,11 @@ User Database::getUserByUsername(const std::string& username) {
     
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         user.id = sqlite3_column_int(stmt, 0);
-        user.username = std::string((const char*)sqlite3_column_text(stmt, 1));
-        user.password_hash = std::string((const char*)sqlite3_column_text(stmt, 2));
-        user.salt = std::string((const char*)sqlite3_column_text(stmt, 3));
+        user.username = sqlite3_column_text(stmt, 1) ? std::string((const char*)sqlite3_column_text(stmt, 1)) : std::string("");
+        user.password_hash = sqlite3_column_text(stmt, 2) ? std::string((const char*)sqlite3_column_text(stmt, 2)) : std::string("");
+        user.salt = sqlite3_column_text(stmt, 3) ? std::string((const char*)sqlite3_column_text(stmt, 3)) : std::string("");
         user.created_at = sqlite3_column_int64(stmt, 4);
+        user.role = sqlite3_column_text(stmt, 5) ? std::string((const char*)sqlite3_column_text(stmt, 5)) : std::string("user");
     }
     
     sqlite3_finalize(stmt);
