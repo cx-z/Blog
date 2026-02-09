@@ -318,6 +318,8 @@ int main(int argc, char* argv[]) {
             item["content"] = post.content;
             item["timestamp"] = post.timestamp;
             item["author"] = post.author;
+            item["user_id"] = post.user_id;
+            item["is_author"] = (post.user_id == user_id) || (role == "admin");
             json_posts.push_back(item);
         }
 
@@ -396,6 +398,8 @@ int main(int argc, char* argv[]) {
         item["content"] = post.content;
         item["timestamp"] = post.timestamp;
         item["author"] = post.author;
+        item["user_id"] = post.user_id;
+        item["is_author"] = (post.user_id == user_id) || (role == "admin");
         response["data"] = std::move(item);
         
         crow::response res(response);

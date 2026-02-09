@@ -25,6 +25,7 @@ async function loadPosts() {
                 <div class="card mb-4 post-card">
                     <div class="card-body position-relative">
                         <button class="btn-delete-post" onclick="deletePost(${post.id}); return false;" title="删除文章">×</button>
+                        ${post.is_author ? `<button class="btn-edit-post" onclick="editPost(${post.id}); return false;" title="编辑文章">✎</button>` : ''}
                         <h5 class="card-title">
                             <a href="#" onclick="showPost(${post.id}); return false;">
                                 ${escapeHtml(post.title)}
@@ -135,4 +136,9 @@ async function deletePost(id) {
             alert('删除失败，请稍后重试');
         }
     }
+}
+
+function editPost(id) {
+    // 跳转到编辑页面
+    window.location.href = `editor.html?mode=edit&id=${id}`;
 }

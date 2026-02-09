@@ -79,6 +79,37 @@ main {
     transform: scale(0.95);
 }
 
+/* 编辑按钮样式 */
+.btn-edit-post {
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #007bff;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.btn-edit-post:hover {
+    background-color: #e7f1ff;
+    color: #0056b3;
+    transform: scale(1.1);
+}
+
+.btn-edit-post:active {
+    transform: scale(0.95);
+}
+
 /* 侧边栏卡片 */
 .card {
     border: none;
