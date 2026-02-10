@@ -106,7 +106,10 @@ curl -X POST http://localhost:8080/api/posts \
 #     "id": 1,
 #     "title": "我的第一篇博客",
 #     "content": "这是通过 API 创建的文章",
-#     "timestamp": 1770476185973
+#     "timestamp": 1770476185973,
+#     "author": "myuser",
+#     "user_id": 1,
+#     "is_author": true
 #   }
 # }
 ```

@@ -191,6 +191,10 @@ cd /Users/bytedance/Projects/Blog/build
 2. 应该能看到已发布的文章列表
 3. 点击"阅读更多"可查看完整内容
 
+### 管理员说明
+
+- 管理员账号可在文章卡片与详情中查看作者名，普通账号不展示作者名
+
 ## API 接口文档
 
 ### 获取所有文章
@@ -206,7 +210,10 @@ GET /api/posts
       "id": 1,
       "title": "我的第一篇文章",
       "content": "这是内容...",
-      "timestamp": 1707195000000000
+      "timestamp": 1707195000000000,
+      "author": "张三",
+      "user_id": 1,
+      "is_author": true
     }
   ]
 }
@@ -224,7 +231,10 @@ GET /api/posts/{id}
     "id": 1,
     "title": "我的第一篇文章",
     "content": "这是内容...",
-    "timestamp": 1707195000000000
+    "timestamp": 1707195000000000,
+    "author": "张三",
+    "user_id": 1,
+    "is_author": true
   }
 }
 ```
@@ -248,7 +258,10 @@ Content-Type: application/json
     "id": 2,
     "title": "新文章标题",
     "content": "新文章内容",
-    "timestamp": 1707195100000000
+    "timestamp": 1707195100000000,
+    "author": "张三",
+    "user_id": 1,
+    "is_author": true
   }
 }
 ```
