@@ -112,7 +112,7 @@ cd build
 | GET | `/api/posts/{id}` | 获取单篇文章 |
 | POST | `/api/posts` | 创建新文章 |
 | PUT | `/api/posts/{id}` | 更新文章 |
-| DELETE | `/api/posts/{id}` | 删除文章 |
+| DELETE | `/api/posts/{id}` | 删除文章（管理员删除他人为软删除） |
 | OPTIONS | `/<path>` | CORS 预检 |
 
 ---
@@ -139,6 +139,7 @@ cd build
 - [x] 后端 Web 服务器
 - [x] SQLite 数据库集成
 - [x] RESTful API (CRUD)
+- [x] 权限与软删除规则
 - [x] 前端页面 (HTML)
 - [x] 前端样式 ( (含重试)
 - [x] 手动下载脚本
@@ -308,4 +309,3 @@ Blog System v1.0 ✅
 ---
 
 **祝您使用愉快！如有任何问题，请参考相关文档。** 📚
-

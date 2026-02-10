@@ -86,7 +86,7 @@
 |------|------|------|
 | `server/include/crypto_utils.h` | 新增 | 加密工具（SHA-256 + Salt） |
 | `server/include/jwt_utils.h` | 新增 | JWT 工具（生成/验证） |
-| `server/include/database.h` | 修改 | 添加 User 结构和方法 |
+| `server/include/database.h` | 修改 | 添加 User 结构与软删除字段 |
 | `server/src/database.cpp` | 修改 | 实现用户 CRUD 操作 |
 | `server/src/main.cpp` | 修改 | 添加认证端点和 API 保护 |
 | `server/CMakeLists.txt` | 修改 | 添加 OpenSSL 依赖 |
@@ -149,6 +149,10 @@
   POST /api/posts - 需要 Token
   PUT /api/posts/:id - 需要 Token
   DELETE /api/posts/:id - 需要 Token
+
+权限规则:
+  管理员可删除任意文章但不能编辑他人文章
+  管理员删除他人文章为软删除
 
 受保护页面:
   /index.html - 需要登录

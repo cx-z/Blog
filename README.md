@@ -194,6 +194,9 @@ cd /Users/bytedance/Projects/Blog/build
 ### 管理员说明
 
 - 管理员账号可在文章卡片与详情中查看作者名，普通账号不展示作者名
+- 管理员可删除任何文章，但不能编辑他人文章
+- 管理员删除他人文章为软删除，作者仍可见且可阅读/删除但不可编辑
+- 管理员视角中已软删除的文章删除按钮置灰不可点击
 
 ## API 接口文档
 
@@ -213,7 +216,9 @@ GET /api/posts
       "timestamp": 1707195000000000,
       "author": "张三",
       "user_id": 1,
-      "is_author": true
+      "is_author": true,
+      "deleted_by_admin": 0,
+      "deleted_at": 0
     }
   ]
 }
@@ -234,7 +239,9 @@ GET /api/posts/{id}
     "timestamp": 1707195000000000,
     "author": "张三",
     "user_id": 1,
-    "is_author": true
+    "is_author": true,
+    "deleted_by_admin": 0,
+    "deleted_at": 0
   }
 }
 ```
@@ -261,7 +268,9 @@ Content-Type: application/json
     "timestamp": 1707195100000000,
     "author": "张三",
     "user_id": 1,
-    "is_author": true
+    "is_author": true,
+    "deleted_by_admin": 0,
+    "deleted_at": 0
   }
 }
 ```
@@ -286,6 +295,8 @@ Content-Type: application/json
 ```
 
 ### 删除文章
+
+管理员删除他人文章时为软删除，会写入 `deleted_by_admin` 与 `deleted_at`。
 
 ```
 DELETE /api/posts/{id}

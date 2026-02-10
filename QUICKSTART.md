@@ -254,6 +254,7 @@ SELECT * FROM posts;
 # 退出
 .quit
 ```
+`deleted_by_admin` 与 `deleted_at` 用于标记管理员软删除。
 
 ### 修改服务器端口
 

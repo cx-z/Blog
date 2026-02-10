@@ -110,6 +110,7 @@ cd build
 rm -f db/blog.db
 ./build.sh --run       # 会自动创建新数据库
 ```
+posts 表新增 `deleted_by_admin` 与 `deleted_at` 字段用于管理员软删除标记。
 
 ---
 

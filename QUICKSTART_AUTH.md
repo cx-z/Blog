@@ -109,7 +109,9 @@ curl -X POST http://localhost:8080/api/posts \
 #     "timestamp": 1770476185973,
 #     "author": "myuser",
 #     "user_id": 1,
-#     "is_author": true
+#     "is_author": true,
+#     "deleted_by_admin": 0,
+#     "deleted_at": 0
 #   }
 # }
 ```
@@ -145,6 +147,7 @@ curl -X POST http://localhost:8080/api/posts \
 ✅ **Token 过期**: 默认 7 天自动过期  
 ✅ **无状态认证**: 服务器无需存储会话信息  
 ✅ **权限隔离**: 未登录用户无法创建/编辑/删除文章  
+✅ **管理员规则**: 管理员可删除任意文章但不能编辑他人文章，删除他人文章为软删除  
 
 ## 数据库结构
 
@@ -159,13 +162,16 @@ CREATE TABLE users (
 );
 ```
 
-### posts 表（保持不变）
+### posts 表
 ```sql
 CREATE TABLE posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 文章 ID
   title TEXT NOT NULL,                            -- 标题
   content TEXT NOT NULL,                          -- 内容
-  timestamp INTEGER NOT NULL                      -- 发布时间（毫秒）
+  timestamp INTEGER NOT NULL,                     -- 发布时间（毫秒）
+  user_id INTEGER,                                -- 作者用户 ID
+  deleted_by_admin INTEGER NOT NULL DEFAULT 0,    -- 是否被管理员删除
+  deleted_at INTEGER                              -- 删除时间（毫秒）
 );
 ```
 

@@ -83,7 +83,10 @@ CREATE TABLE posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    timestamp INTEGER NOT NULL
+    timestamp INTEGER NOT NULL,
+    user_id INTEGER,
+    deleted_by_admin INTEGER NOT NULL DEFAULT 0,
+    deleted_at INTEGER
 );
 ```
 
@@ -146,6 +149,10 @@ CREATE TABLE posts (
 - 响应式设计
 - CSS 动画效果
 - 模态框显示详情
+
+✅ **权限与删除策略**
+- 管理员可删除任意文章但不能编辑他人文章
+- 管理员删除他人文章为软删除并保留可见性
 
 ✅ **错误处理**
 - 前端表单验证

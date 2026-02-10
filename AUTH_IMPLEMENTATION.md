@@ -44,6 +44,10 @@
   - `DELETE /api/posts/:id`（删除文章）
 
 - **认证方式**: HTTP Header `Authorization: Bearer {token}`
+- **权限规则**:
+  - 普通用户可编辑/删除自己的文章
+  - 管理员可查看/删除所有文章，但不能编辑他人文章
+  - 管理员删除他人文章为软删除，记录 `deleted_by_admin` 与 `deleted_at`
 
 ---
 
@@ -84,8 +88,8 @@ Salt: 随机 16 字节，十六进制存储
 - `server/include/jwt_utils.h` - JWT 生成、验证、解析
 
 **数据库扩展:**
-- `server/include/database.h` - 添加 User 结构和用户操作方法
-- `server/src/database.cpp` - 实现用户 CRUD 操作
+- `server/include/database.h` - 添加 User 结构和软删除字段
+- `server/src/database.cpp` - 实现用户 CRUD 操作与软删除逻辑
 
 **API 端点:**
 - `server/src/main.cpp` - 添加认证和文章保护接口
@@ -142,6 +146,9 @@ cd build
 | DELETE | `/api/posts/:id` | ✅ | 删除文章 |
 
 ---
+
+### 删除行为说明
+- 管理员删除他人文章为软删除，作者仍可见该文章并可阅读/删除但不可编辑
 
 ## 🧪 测试案例
 

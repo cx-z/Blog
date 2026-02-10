@@ -68,6 +68,10 @@ struct Post {
     std::string title;         // 文章标题
     std::string content;       // 文章内容
     long long timestamp;       // 发布时间戳
+    int user_id;               // 作者用户 ID
+    std::string author;        // 作者用户名
+    int deleted_by_admin;      // 是否被管理员删除
+    long long deleted_at;      // 删除时间戳
 };
 
 // 数据库类
@@ -81,6 +85,7 @@ class Database {
     Post getPostById(int)      // 读取单条
     bool updatePost(...)       // 更新
     bool deletePost(int)       // 删除
+    bool softDeletePost(...)   // 软删除
 };
 
 // Crow Web 服务器
@@ -119,7 +124,10 @@ CREATE TABLE posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    timestamp INTEGER NOT NULL
+    timestamp INTEGER NOT NULL,
+    user_id INTEGER,
+    deleted_by_admin INTEGER NOT NULL DEFAULT 0,
+    deleted_at INTEGER
 );
 
 -- 索引（可选优化）
@@ -148,7 +156,7 @@ Crow 服务器 (端口 8080)
         ├─ PUT /api/posts/{id}
         │   └─ Database::updatePost() → JSON
         └─ DELETE /api/posts/{id}
-            └─ Database::deletePost() → JSON
+            └─ Database::deletePost()/softDeletePost() → JSON
     ↓
 SQLite 数据库 (blog.db)
     ├─ 读写
