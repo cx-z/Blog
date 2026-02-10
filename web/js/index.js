@@ -19,6 +19,7 @@ async function loadPosts() {
     try {
         const response = await authenticatedFetch('/api/posts');
         const result = await response.json();
+        const isAdmin = authManager.getRole() === 'admin';
         
         if (result.success && result.data.length > 0) {
             container.innerHTML = result.data.map(post => `
@@ -26,6 +27,7 @@ async function loadPosts() {
                     <div class="card-body position-relative">
                         <button class="btn-delete-post" onclick="deletePost(${post.id}); return false;" title="删除文章">×</button>
                         ${post.is_author ? `<button class="btn-edit-post" onclick="editPost(${post.id}); return false;" title="编辑文章">✎</button>` : ''}
+                        ${isAdmin ? `<div class="post-author">${escapeHtml(getAuthorDisplayName(post))}</div>` : ''}
                         <h5 class="card-title">
                             <a href="#" onclick="showPost(${post.id}); return false;">
                                 ${escapeHtml(post.title)}
@@ -61,6 +63,7 @@ function showPost(id) {
             if (result.success) {
                 const post = result.data;
                 const modal = new bootstrap.Modal(document.createElement('div'));
+                const isAdmin = authManager.getRole() === 'admin';
                 
                 // 创建模态框
                 const div = document.createElement('div');
@@ -73,6 +76,7 @@ function showPost(id) {
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
+                                    ${isAdmin ? `<p class="text-muted mb-1"><small>${escapeHtml(getAuthorDisplayName(post))}</small></p>` : ''}
                                     <p class="text-muted"><small>${formatDate(post.timestamp)}</small></p>
                                     <div class="post-content" style="white-space: pre-wrap;">
                                         ${escapeHtml(post.content)}
@@ -108,6 +112,17 @@ function formatDate(timestamp) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+function getAuthorDisplayName(post) {
+    const author = post.author ? post.author.trim() : '';
+    if (author) {
+        return `作者：${author}`;
+    }
+    if (post.user_id !== undefined && post.user_id !== null) {
+        return `作者：${post.user_id}`;
+    }
+    return '作者：';
 }
 
 function escapeHtml(text) {

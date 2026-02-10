@@ -262,6 +262,7 @@
                     localStorage.setItem('authToken', result.data.token);
                     localStorage.setItem('username', result.data.username);
                     localStorage.setItem('userId', result.data.user_id);
+                    localStorage.setItem('role', result.data.role);
                     
                     successMsg.textContent = '注册成功！正在跳转到首页...';
                     successMsg.style.display = 'block';

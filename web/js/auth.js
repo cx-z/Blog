@@ -8,6 +8,7 @@ class AuthManager {
         this.tokenKey = 'authToken';
         this.usernameKey = 'username';
         this.userIdKey = 'userId';
+        this.roleKey = 'role';
     }
     
     /**
@@ -29,8 +30,13 @@ class AuthManager {
         return {
             userId: localStorage.getItem(this.userIdKey),
             username: localStorage.getItem(this.usernameKey),
+            role: localStorage.getItem(this.roleKey),
             token: token
         };
+    }
+
+    getRole() {
+        return localStorage.getItem(this.roleKey);
     }
     
     /**
@@ -47,15 +53,21 @@ class AuthManager {
         localStorage.removeItem(this.tokenKey);
         localStorage.removeItem(this.usernameKey);
         localStorage.removeItem(this.userIdKey);
+        localStorage.removeItem(this.roleKey);
     }
     
     /**
      * 设置用户信息（登录时调用）
      */
-    setUserInfo(token, username, userId) {
+    setUserInfo(token, username, userId, role) {
         localStorage.setItem(this.tokenKey, token);
         localStorage.setItem(this.usernameKey, username);
         localStorage.setItem(this.userIdKey, userId);
+        if (role) {
+            localStorage.setItem(this.roleKey, role);
+        } else {
+            localStorage.removeItem(this.roleKey);
+        }
     }
     
     /**
@@ -75,8 +87,24 @@ class AuthManager {
                 },
                 body: JSON.stringify({ token })
             });
-            
-            return response.ok;
+            if (!response.ok) {
+                return false;
+            }
+
+            const result = await response.json();
+            if (result && result.success && result.data) {
+                if (result.data.user_id !== undefined && result.data.user_id !== null) {
+                    localStorage.setItem(this.userIdKey, result.data.user_id);
+                }
+                if (result.data.username) {
+                    localStorage.setItem(this.usernameKey, result.data.username);
+                }
+                if (result.data.role) {
+                    localStorage.setItem(this.roleKey, result.data.role);
+                }
+            }
+
+            return true;
         } catch (error) {
             console.error('Token verification failed:', error);
             return false;

@@ -110,6 +110,18 @@ main {
     transform: scale(0.95);
 }
 
+.post-author {
+    position: absolute;
+    top: 14px;
+    right: 95px;
+    font-size: 0.85rem;
+    color: #6c757d;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* 侧边栏卡片 */
 .card {
     border: none;
