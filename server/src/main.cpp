@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
             item["timestamp"] = post.timestamp;
             item["author"] = post.author;
             item["user_id"] = post.user_id;
-            item["is_author"] = (post.user_id == user_id) || (role == "admin");
+            item["is_author"] = (post.user_id == user_id);
             json_posts.push_back(item);
         }
 
@@ -399,7 +399,7 @@ int main(int argc, char* argv[]) {
         item["timestamp"] = post.timestamp;
         item["author"] = post.author;
         item["user_id"] = post.user_id;
-        item["is_author"] = (post.user_id == user_id) || (role == "admin");
+        item["is_author"] = (post.user_id == user_id);
         response["data"] = std::move(item);
         
         crow::response res(response);
@@ -550,7 +550,7 @@ int main(int argc, char* argv[]) {
             return res;
         }
 
-        if (post.user_id != user_id && role != "admin") {
+        if (post.user_id != user_id) {
             crow::json::wvalue error;
             error["success"] = false;
             error["message"] = "Forbidden";

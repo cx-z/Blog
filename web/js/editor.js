@@ -24,8 +24,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         isEditMode = true;
         editingPostId = parseInt(postId);
         document.getElementById('page-title').textContent = '编辑文章';
-        await loadPostForEditing(editingPostId);
-        startAutoSave();
+        const canEdit = await loadPostForEditing(editingPostId);
+        if (canEdit) {
+            startAutoSave();
+        }
     }
 });
 
@@ -36,18 +38,33 @@ async function loadPostForEditing(postId) {
         
         if (result.success && result.data) {
             const post = result.data;
+            const currentUser = authManager.getCurrentUser();
+            const currentUserId = currentUser ? parseInt(currentUser.userId, 10) : null;
+            const isAuthor = currentUserId !== null && post.user_id === currentUserId;
+            if (!isAuthor) {
+                isEditMode = false;
+                editingPostId = null;
+                showError('你没有权限编辑这篇文章');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return false;
+            }
             document.getElementById('post-title').value = post.title;
             document.getElementById('post-content').value = post.content;
             lastSavedContent = JSON.stringify({
                 title: post.title,
                 content: post.content
             });
+            return true;
         } else {
             showError('无法加载文章内容，请稍后重试');
+            return false;
         }
     } catch (error) {
         console.error('Error loading post:', error);
         showError('网络错误，请检查连接后重试');
+        return false;
     }
 }
 
