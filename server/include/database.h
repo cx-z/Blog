@@ -15,6 +15,8 @@ struct Post {
     long long timestamp;
     int user_id; // 作者用户 ID（可能为 -1 表示未知）
     std::string author; // 作者用户名（便于前端展示）
+    int deleted_by_admin;
+    long long deleted_at;
 
     json to_json() const {
         return json{
@@ -23,7 +25,9 @@ struct Post {
             {"content", content},
             {"timestamp", timestamp},
             {"user_id", user_id},
-            {"author", author}
+            {"author", author},
+            {"deleted_by_admin", deleted_by_admin},
+            {"deleted_at", deleted_at}
         };
     }
 };
@@ -51,6 +55,7 @@ public:
     Post getPostById(int id);
     bool updatePost(int id, const std::string& title, const std::string& content);
     bool deletePost(int id);
+    bool softDeletePost(int id, long long deleted_at);
     std::vector<Post> getPostsByUser(int user_id);
     
     // 用户操作

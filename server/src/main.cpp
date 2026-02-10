@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 
 int main(int argc, char* argv[]) {
     crow::SimpleApp app;
@@ -319,7 +320,9 @@ int main(int argc, char* argv[]) {
             item["timestamp"] = post.timestamp;
             item["author"] = post.author;
             item["user_id"] = post.user_id;
-            item["is_author"] = (post.user_id == user_id);
+            item["deleted_by_admin"] = post.deleted_by_admin;
+            item["deleted_at"] = post.deleted_at;
+            item["is_author"] = (post.user_id == user_id) && (post.deleted_by_admin == 0);
             json_posts.push_back(item);
         }
 
@@ -399,7 +402,9 @@ int main(int argc, char* argv[]) {
         item["timestamp"] = post.timestamp;
         item["author"] = post.author;
         item["user_id"] = post.user_id;
-        item["is_author"] = (post.user_id == user_id);
+        item["deleted_by_admin"] = post.deleted_by_admin;
+        item["deleted_at"] = post.deleted_at;
+        item["is_author"] = (post.user_id == user_id) && (post.deleted_by_admin == 0);
         response["data"] = std::move(item);
         
         crow::response res(response);
@@ -560,6 +565,17 @@ int main(int argc, char* argv[]) {
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
         }
+
+        if (post.deleted_by_admin) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Forbidden";
+            crow::response res(error);
+            res.code = 403;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
         
         bool success = db.updatePost(id, body["title"].s(), body["content"].s());
         
@@ -636,7 +652,14 @@ int main(int argc, char* argv[]) {
             return res;
         }
         
-        bool success = db.deletePost(id);
+        bool success = false;
+        if (role == "admin" && post.user_id != user_id) {
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch());
+            success = db.softDeletePost(id, ms.count());
+        } else {
+            success = db.deletePost(id);
+        }
         
         crow::json::wvalue response;
         response["success"] = success;

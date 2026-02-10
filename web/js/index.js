@@ -22,10 +22,16 @@ async function loadPosts() {
         const isAdmin = authManager.getRole() === 'admin';
         
         if (result.success && result.data.length > 0) {
-            container.innerHTML = result.data.map(post => `
+            container.innerHTML = result.data.map(post => {
+                const disableDelete = isAdmin && post.deleted_by_admin;
+                const deleteButton = disableDelete
+                    ? `<button class="btn-delete-post is-disabled" title="删除文章" disabled>×</button>`
+                    : `<button class="btn-delete-post" onclick="deletePost(${post.id}); return false;" title="删除文章">×</button>`;
+                return `
                 <div class="card mb-4 post-card">
                     <div class="card-body position-relative">
-                        <button class="btn-delete-post" onclick="deletePost(${post.id}); return false;" title="删除文章">×</button>
+                        ${post.deleted_by_admin ? `<span class="post-deleted-badge">已被管理员删除</span>` : ''}
+                        ${deleteButton}
                         ${post.is_author ? `<button class="btn-edit-post" onclick="editPost(${post.id}); return false;" title="编辑文章">✎</button>` : ''}
                         ${isAdmin ? `<div class="post-author">${escapeHtml(getAuthorDisplayName(post))}</div>` : ''}
                         <h5 class="card-title">
@@ -44,7 +50,8 @@ async function loadPosts() {
                         </a>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         } else {
             container.innerHTML = '<p class="text-center text-muted mt-5">还没有文章，<a href="editor.html">去发布第一篇</a></p>';
         }

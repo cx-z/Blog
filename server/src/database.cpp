@@ -30,7 +30,9 @@ bool Database::createTablesIfNotExist() {
             title TEXT NOT NULL,
             content TEXT NOT NULL,
             timestamp INTEGER NOT NULL,
-            user_id INTEGER
+            user_id INTEGER,
+            deleted_by_admin INTEGER NOT NULL DEFAULT 0,
+            deleted_at INTEGER
         );
         
         CREATE TABLE IF NOT EXISTS users (
@@ -48,22 +50,35 @@ bool Database::createTablesIfNotExist() {
     // 如果 posts 表存在但没有 user_id 字段，尝试添加该列（兼容旧数据库）
     // 查询表结构以判断列是否存在
     bool has_user_id = false;
+    bool has_deleted_by_admin = false;
+    bool has_deleted_at = false;
     const char* pragma_sql = "PRAGMA table_info(posts);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, pragma_sql, -1, &stmt, nullptr) == SQLITE_OK) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             const unsigned char* colname = sqlite3_column_text(stmt, 1);
-            if (colname && std::string(reinterpret_cast<const char*>(colname)) == "user_id") {
-                has_user_id = true;
-                break;
+            if (colname) {
+                std::string name = reinterpret_cast<const char*>(colname);
+                if (name == "user_id") {
+                    has_user_id = true;
+                } else if (name == "deleted_by_admin") {
+                    has_deleted_by_admin = true;
+                } else if (name == "deleted_at") {
+                    has_deleted_at = true;
+                }
             }
         }
     }
     if (stmt) sqlite3_finalize(stmt);
 
     if (!has_user_id) {
-        // 添加列，若失败则继续（兼容性考虑）
         executeSQL("ALTER TABLE posts ADD COLUMN user_id INTEGER;");
+    }
+    if (!has_deleted_by_admin) {
+        executeSQL("ALTER TABLE posts ADD COLUMN deleted_by_admin INTEGER NOT NULL DEFAULT 0;");
+    }
+    if (!has_deleted_at) {
+        executeSQL("ALTER TABLE posts ADD COLUMN deleted_at INTEGER;");
     }
 
     return true;
@@ -111,6 +126,8 @@ bool Database::insertPost(const std::string& title, const std::string& content, 
     out_post.timestamp = timestamp;
     out_post.user_id = user_id;
     out_post.author = "";
+    out_post.deleted_by_admin = 0;
+    out_post.deleted_at = 0;
     
     sqlite3_finalize(stmt);
     return true;
@@ -120,7 +137,7 @@ std::vector<Post> Database::getAllPosts() {
     std::vector<Post> posts;
     // 使用 LEFT JOIN 获取作者用户名（若存在）
     std::string sql = R"(
-        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username
+        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username, p.deleted_by_admin, p.deleted_at
         FROM posts p
         LEFT JOIN users u ON p.user_id = u.id
         ORDER BY p.timestamp DESC;
@@ -139,6 +156,8 @@ std::vector<Post> Database::getAllPosts() {
         post.timestamp = sqlite3_column_int64(stmt, 3);
         post.user_id = sqlite3_column_int(stmt, 4);
         post.author = sqlite3_column_text(stmt, 5) ? std::string((const char*)sqlite3_column_text(stmt, 5)) : std::string("");
+        post.deleted_by_admin = sqlite3_column_int(stmt, 6);
+        post.deleted_at = sqlite3_column_int64(stmt, 7);
         posts.push_back(post);
     }
 
@@ -147,9 +166,9 @@ std::vector<Post> Database::getAllPosts() {
 }
 
 Post Database::getPostById(int id) {
-    Post post{-1, "", "", 0, -1, ""};
+    Post post{-1, "", "", 0, -1, "", 0, 0};
     std::string sql = R"(
-        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username
+        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username, p.deleted_by_admin, p.deleted_at
         FROM posts p
         LEFT JOIN users u ON p.user_id = u.id
         WHERE p.id = ?;
@@ -169,6 +188,8 @@ Post Database::getPostById(int id) {
         post.timestamp = sqlite3_column_int64(stmt, 3);
         post.user_id = sqlite3_column_int(stmt, 4);
         post.author = sqlite3_column_text(stmt, 5) ? std::string((const char*)sqlite3_column_text(stmt, 5)) : std::string("");
+        post.deleted_by_admin = sqlite3_column_int(stmt, 6);
+        post.deleted_at = sqlite3_column_int64(stmt, 7);
     }
 
     sqlite3_finalize(stmt);
@@ -206,10 +227,25 @@ bool Database::deletePost(int id) {
     return success;
 }
 
+bool Database::softDeletePost(int id, long long deleted_at) {
+    std::string sql = "UPDATE posts SET deleted_by_admin = 1, deleted_at = ? WHERE id = ?;";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_bind_int64(stmt, 1, deleted_at);
+    sqlite3_bind_int(stmt, 2, id);
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    return success;
+}
+
 std::vector<Post> Database::getPostsByUser(int user_id) {
     std::vector<Post> posts;
     std::string sql = R"(
-        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username
+        SELECT p.id, p.title, p.content, p.timestamp, p.user_id, u.username, p.deleted_by_admin, p.deleted_at
         FROM posts p
         LEFT JOIN users u ON p.user_id = u.id
         WHERE p.user_id = ?
@@ -231,6 +267,8 @@ std::vector<Post> Database::getPostsByUser(int user_id) {
         post.timestamp = sqlite3_column_int64(stmt, 3);
         post.user_id = sqlite3_column_int(stmt, 4);
         post.author = sqlite3_column_text(stmt, 5) ? std::string((const char*)sqlite3_column_text(stmt, 5)) : std::string("");
+        post.deleted_by_admin = sqlite3_column_int(stmt, 6);
+        post.deleted_at = sqlite3_column_int64(stmt, 7);
         posts.push_back(post);
     }
 

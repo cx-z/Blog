@@ -41,6 +41,15 @@ async function loadPostForEditing(postId) {
             const currentUser = authManager.getCurrentUser();
             const currentUserId = currentUser ? parseInt(currentUser.userId, 10) : null;
             const isAuthor = currentUserId !== null && post.user_id === currentUserId;
+            if (post.deleted_by_admin) {
+                isEditMode = false;
+                editingPostId = null;
+                showError('该文章已被管理员删除，无法编辑');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return false;
+            }
             if (!isAuthor) {
                 isEditMode = false;
                 editingPostId = null;
