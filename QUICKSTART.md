@@ -30,4 +30,4 @@
 
 - 项目概览与代码结构：docs/architecture/project-overview.md
 - 产品形态总览（PRD/规格）：PRODUCT_OVERVIEW.md
-- API 汇总与构建排错：README.md
+- 构建与运行详述：docs/build/build-and-run.md
