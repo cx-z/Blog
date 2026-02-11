@@ -67,10 +67,17 @@ Blog/
 ├── COMPLETION_SUMMARY.md            # 完成总结
 ├── PROJECT_OVERVIEW.md              # 项目概览
 ├── QUICKSTART.md                    # 快速启动
-├── QUICKSTART_AUTH.md               # 认证快速启动
 ├── README.md                        # 完整编译运行指南
-├── START_HERE.md                    # 项目入口说明
 ├── deps.md                          # 依赖说明
+├── docs/                            # 功能文档（按模块拆分）
+│   ├── auth/
+│   │   ├── login-register.md        # 登录/注册
+│   │   └── token-session.md         # Token 会话
+│   └── posts/
+│       ├── delete.md                # 删除文章（含管理员软删）
+│       ├── list.md                  # 文章列表
+│       ├── read.md                  # 阅读文章
+│       └── write.md                 # 创建/编辑文章
 ├── build.sh                         # 快速编译脚本
 ├── test-api.sh                      # API 测试脚本
 ├── test-auth.sh                     # 认证测试脚本
