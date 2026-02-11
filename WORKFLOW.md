@@ -104,10 +104,10 @@
 ```
 build/deps/
 ├── crow_include/
-│   └── crow_all.hpp          (1.2 MB)
+│   └── crow_all.hpp
 └── json_include/
     └── nlohmann/
-        └── json.hpp          (700 KB)
+        └── json.hpp
 ```
 
 ### build.sh

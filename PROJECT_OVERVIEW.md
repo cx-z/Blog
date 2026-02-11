@@ -267,21 +267,7 @@ async function loadPosts() {
 }
 ```
 
-## 📝 文件大小统计
-
-| 文件 | 行数 | 大小 |
-|------|------|------|
-| main.cpp | 255 | ~9 KB |
-| database.cpp | 203 | ~6 KB |
-| database.h | 48 | ~1.5 KB |
-| index.html | ~80 | ~3 KB |
-| editor.html | ~70 | ~3 KB |
-| index.js | 73 | ~2.5 KB |
-| editor.js | 48 | ~1.5 KB |
-| style.css | 226 | ~8 KB |
-| **总计** | **1,000+** | **~35 KB** |
-
-## 🔐 安全考虑
+##  安全考虑
 
 1. **SQL 注入防护**: 使用参数化查询
 2. **XSS 防护**: HTML 转义
@@ -298,6 +284,5 @@ async function loadPosts() {
 ---
 
 **项目完成时间**: 2026-02-06
-**总代码行数**: ~1000 行
 **依赖数量**: 3 个 (Crow, nlohmann/json, SQLite3)
 **编译时间**: ~2-3 分钟 (首次含依赖下载)

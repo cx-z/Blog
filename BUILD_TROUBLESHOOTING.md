@@ -186,16 +186,6 @@ brew install sqlite3
 
 2. **头文件找不到**
 
-   确保依赖文件格式正确：
-   ```bash
-   # 检查文件大小（不应该很小）
-   ls -lh build/deps/crow_include/crow_all.hpp
-   # 应该显示 > 1MB
-   
-   ls -lh build/deps/json_include/nlohmann/json.hpp
-   # 应该显示 > 500KB
-   ```
-
 3. **SQLite3 库未找到**
 
    ```bash
