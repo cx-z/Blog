@@ -186,6 +186,16 @@ CREATE TABLE IF NOT EXISTS users (
 
 确认用户名/密码正确；也可以先用注册接口创建新账号，再登录。
 
+## 配置与定制
+
+### 修改 username/password 校验规则
+
+注册接口的校验逻辑在后端路由中实现，调整位置：
+
+- ../../server/src/main.cpp（`POST /api/auth/register`）
+  - username 最小长度
+  - password 最小长度
+
 ## 优化清单
 
 - 账号规则（允许字符集、最大长度）与密码强度（复杂度）规则参数化

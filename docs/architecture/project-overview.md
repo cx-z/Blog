@@ -6,7 +6,7 @@
 
 - 30 秒入口：../../QUICKSTART.md
 - 构建与 API 汇总：../../README.md
-- 认证实现说明：../../AUTH_IMPLEMENTATION.md
+- 认证入口：../../QUICKSTART_AUTH.md
 - 登录/注册：../auth/login-register.md
 - Token 会话：../auth/token-session.md
 - 文章：../posts/write.md、../posts/list.md、../posts/read.md、../posts/delete.md
@@ -118,7 +118,7 @@ JSON 响应
 ```
 
 用户级别的验收路径见：../../QUICKSTART.md  
-认证的用户流程（首次使用/登录/登出/发布）见：../../AUTH_IMPLEMENTATION.md
+认证与会话详解见：../auth/login-register.md、../auth/token-session.md
 
 ## 安全考虑（总览）
 

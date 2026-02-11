@@ -111,6 +111,24 @@ Token 本身不落库；会话状态由前端保存 Token 决定。权限信息�
 
 后端默认 7 天（`JwtUtils::EXPIRATION_TIME = 7 * 24 * 60 * 60`）。
 
+## 配置与定制
+
+### 修改 Token 过期时间
+
+编辑 ../../server/include/jwt_utils.h：
+
+```cpp
+const long long JwtUtils::EXPIRATION_TIME = 7 * 24 * 60 * 60;
+```
+
+### 修改 JWT 签名密钥
+
+编辑 ../../server/include/jwt_utils.h：
+
+```cpp
+const std::string JwtUtils::SECRET_KEY = "your_secret_key_here";
+```
+
 ### 可以多设备登录吗？
 
 可以。每次登录会生成新 Token；系统不维护服务端会话，因此不会主动让旧设备失效。
@@ -134,6 +152,15 @@ posts 类接口要求 `Authorization` 头满足：
 
 - token 过期：重新登录拿新 token
 - token 被截断/复制不完整：重新获取
+
+## 测试脚本
+
+工程根目录提供了覆盖注册/登录/verify/受保护接口的脚本：
+
+```bash
+chmod +x test-auth.sh
+./test-auth.sh
+```
 
 ## 优化清单
 
