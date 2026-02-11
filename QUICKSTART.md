@@ -123,27 +123,6 @@ cd /Users/bytedance/Projects/Blog/build
 
 ---
 
-## 📁 项目结构速览
-
-```
-Blog/
-├── server/                # C++ 后端 (Crow 框架)
-│   ├── src/main.cpp       # Web 服务器 + API
-│   ├── src/database.cpp   # SQLite 数据库操作
-│   └── CMakeLists.txt     # 构建配置
-├── web/                   # 前端 (HTML/CSS/JS)
-│   ├── index.html         # 首页
-│   ├── editor.html        # 发布页
-│   ├── js/                # JavaScript 逻辑
-│   └── css/               # 样式文件
-├── db/                    # 数据库文件夹
-│   └── blog.db            # SQLite 数据库
-└── build/                 # 编译输出 (自动生成)
-    └── bin/blog_server    # 可执行程序
-```
-
----
-
 ## 🔧 常见问题排查
 
 ### ❌ 问题: "CMake: command not found"

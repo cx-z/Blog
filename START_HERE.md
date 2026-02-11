@@ -6,49 +6,6 @@
 
 ---
 
-## 📦 项目内容总览
-
-### 1. **后端服务器** (C++ + Crow)
-- ✅ [server/src/main.cpp](server/src/main.cpp) - 255 行
-- ✅ [server/src/database.cpp](server/src/database.cpp) - 203 行  
-- ✅ [server/include/database.h](server/include/database.h) - 48 行
-- ✅ [server/CMakeLists.txt](server/CMakeLists.txt) - 构建配置
-
-**包含功能**:
-- RESTful API (6 个端点)
-- SQLite 数据库管理
-- CORS 跨域支持
-- 静态文件服务
-
-### 2. **前端应用** (HTML/CSS/JavaScript)
-- ✅ [web/index.html](web/index.html) - 首页
-- ✅ [web/editor.html](web/editor.html) - 发布页
-- ✅ [web/js/index.js](web/js/index.js) - 73 行
-- ✅ [web/js/editor.js](web/js/editor.js) - 48 行
-- ✅ [web/css/style.css](web/css/style.css) - 226 行
-
-**包含功能**:
-- 文章列表展示
-- 文章详情模态框
-- 文章发布表单
-- Bootstrap 5 响应式设计
-- CSS 动画效果
-
-### 3. **工具和文档**
-- ✅ [build.sh](build.sh) - 自动编译脚本 (改进版，支持重试)
-- ✅ [download-deps.sh](download-deps.sh) - 手动下载依赖脚本
-- ✅ [test-api.sh](test-api.sh) - API 测试脚本
-- ✅ [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md) ⭐ **故障排除指南**
-- ✅ [QUICKSTART.md](QUICKSTART.md) - 快速启动
-- ✅ [README.md](README.md) - 详细指南
-- ✅ [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) - 项目概览
-- ✅ [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md) - 完成总结
-
-### 4. **数据库目录**
-- ✅ [db/](db/) - 数据库文件夹 (编译后自动生成 blog.db)
-
----
-
 ## 🚀 3 分钟快速启动
 
 ### 步骤 1: 安装依赖

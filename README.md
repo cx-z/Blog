@@ -60,29 +60,6 @@ sudo apt-get install -y build-essential cmake sqlite3 libsqlite3-dev curl
 sudo dnf install cmake sqlite-devel curl
 ```
 
-## 项目结构
-
-```
-Blog/
-├── server/
-│   ├── src/
-│   │   ├── main.cpp           # 主程序和 API 路由
-│   │   └── database.cpp       # 数据库实现
-│   ├── include/
-│   │   └── database.h         # 数据库头文件
-│   └── CMakeLists.txt         # CMake 构建配置
-├── web/
-│   ├── index.html             # 首页（文章列表）
-│   ├── editor.html            # 编辑页（发布文章）
-│   ├── js/
-│   │   ├── index.js           # 首页逻辑
-│   │   └── editor.js          # 编辑页逻辑
-│   └── css/
-│       └── style.css          # 样式文件
-└── db/
-    └── blog.db                # SQLite 数据库文件（编译后自动生成）
-```
-
 ## 编译步骤
 
 ### 重要：新的工作流程

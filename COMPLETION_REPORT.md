@@ -78,41 +78,6 @@
 
 ---
 
-## 📦 新增文件清单
-
-### 后端文件（7 个新文件/修改）
-
-| 文件 | 类型 | 描述 |
-|------|------|------|
-| `server/include/crypto_utils.h` | 新增 | 加密工具（SHA-256 + Salt） |
-| `server/include/jwt_utils.h` | 新增 | JWT 工具（生成/验证） |
-| `server/include/database.h` | 修改 | 添加 User 结构与软删除字段 |
-| `server/src/database.cpp` | 修改 | 实现用户 CRUD 操作 |
-| `server/src/main.cpp` | 修改 | 添加认证端点和 API 保护 |
-| `server/CMakeLists.txt` | 修改 | 添加 OpenSSL 依赖 |
-
-### 前端文件（7 个新文件/修改）
-
-| 文件 | 类型 | 描述 |
-|------|------|------|
-| `web/login.html` | 新增 | 登录页面 |
-| `web/register.html` | 新增 | 注册页面 |
-| `web/js/auth.js` | 新增 | Token 管理和路由保护 |
-| `web/index.html` | 修改 | 添加 auth.js 和登出功能 |
-| `web/editor.html` | 修改 | 添加 auth.js 和认证检查 |
-| `web/js/index.js` | 修改 | 添加认证检查和 authenticatedFetch |
-| `web/js/editor.js` | 修改 | 添加认证检查和 authenticatedFetch |
-
-### 文档和测试文件
-
-| 文件 | 描述 |
-|------|------|
-| `test-auth.sh` | 完整的 API 测试脚本 |
-| `AUTH_IMPLEMENTATION.md` | 详细的实现文档 |
-| `QUICKSTART_AUTH.md` | 快速开始指南 |
-
----
-
 ## 🔐 安全架构
 
 ### 密码流程

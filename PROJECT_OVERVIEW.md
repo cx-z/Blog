@@ -18,9 +18,11 @@ Blog/
 │   │       ├── 表创建
 │   │       └── CRUD 操作
 │   ├── include/
-│   │   └── database.h               # 数据库头文件 (48 行)
-│   │       ├── Post 数据结构
-│   │       └── Database 类接口
+│   │   ├── database.h               # 数据库头文件 (48 行)
+│   │   │   ├── Post 数据结构
+│   │   │   └── Database 类接口
+│   │   ├── crypto_utils.h           # 密码加密工具
+│   │   └── jwt_utils.h              # JWT 生成与校验
 │   └── CMakeLists.txt               # CMake 构建配置
 │
 ├── web/                             # 前端
@@ -28,7 +30,10 @@ Blog/
 │   │   └── Bootstrap 5 + 自定义样式
 │   ├── editor.html                  # 发布页（编辑器）
 │   │   └── 表单验证 + API 交互
+│   ├── login.html                   # 登录页
+│   ├── register.html                # 注册页
 │   ├── js/
+│   │   ├── auth.js                  # 认证逻辑
 │   │   ├── index.js                 # 首页逻辑 (73 行)
 │   │   │   ├── 加载文章列表
 │   │   │   ├── 显示文章详情
@@ -49,11 +54,29 @@ Blog/
 │   └── blog.db                      # SQLite 数据库（自动生成）
 │
 ├── build/                           # 构建输出（自动生成）
-│   └── bin/
-│       └── blog_server              # 编译后的可执行文件
+│   ├── bin/
+│   │   └── blog_server              # 编译后的可执行文件
+│   ├── CMakeCache.txt               # CMake 生成文件
+│   └── CMakeFiles/                  # CMake 中间文件
 │
+├── .vscode/                         # 编辑器配置
+│   └── settings.json                # 工作区设置
+│
+├── AUTH_IMPLEMENTATION.md           # 认证实现说明
+├── BUILD_TROUBLESHOOTING.md         # 构建故障排除
+├── COMPLETION_REPORT.md             # 完成报告
+├── COMPLETION_SUMMARY.md            # 完成总结
+├── PROJECT_OVERVIEW.md              # 项目概览
+├── QUICK_REFERENCE.md               # 快速参考卡
+├── QUICKSTART.md                    # 快速启动
+├── QUICKSTART_AUTH.md               # 认证快速启动
 ├── README.md                        # 完整编译运行指南
+├── START_HERE.md                    # 项目入口说明
+├── WORKFLOW.md                      # 工作流程说明
+├── deps.md                          # 依赖说明
 ├── build.sh                         # 快速编译脚本
+├── test-api.sh                      # API 测试脚本
+├── test-auth.sh                     # 认证测试脚本
 └── .gitignore                       # Git 忽略配置
 ```
 

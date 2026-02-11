@@ -11,29 +11,6 @@
 
 ### 1. 后端开发 (C++17 + Crow)
 
-#### 📁 文件清单
-- [server/src/main.cpp](server/src/main.cpp) - 255 行
-  - Crow Web 服务器配置
-  - 静态文件服务
-  - RESTful API 路由 (6 个端点)
-  - CORS 跨域支持
-
-- [server/src/database.cpp](server/src/database.cpp) - 203 行
-  - SQLite3 数据库管理类
-  - 连接和表创建
-  - CRUD 操作实现
-  - 参数化查询防止 SQL 注入
-
-- [server/include/database.h](server/include/database.h) - 48 行
-  - Post 结构体
-  - Database 类接口
-  - JSON 序列化方法
-
-- [server/CMakeLists.txt](server/CMakeLists.txt)
-  - CMake 构建配置
-  - 自动下载 Crow 和 nlohmann/json
-  - SQLite3 库链接
-
 #### 🔌 API 端点
 | 方法 | 路由 | 功能 |
 |------|------|------|
@@ -45,35 +22,6 @@
 | OPTIONS | `/<path>` | CORS 预检请求 |
 
 ### 2. 前端开发 (HTML5 + CSS3 + JavaScript)
-
-#### 📁 文件清单
-- [web/index.html](web/index.html) - 首页
-  - 文章列表展示
-  - Bootstrap 5 美化
-  - 异步加载
-
-- [web/editor.html](web/editor.html) - 发布页
-  - 文章编辑表单
-  - 表单验证
-  - 成功/错误提示
-
-- [web/js/index.js](web/js/index.js) - 73 行
-  - 异步加载文章列表
-  - 模态框显示详情
-  - 日期时间格式化
-  - HTML 转义防止 XSS
-
-- [web/js/editor.js](web/js/editor.js) - 48 行
-  - 表单提交处理
-  - POST 请求发送
-  - 成功/错误提示
-  - 自动页面跳转
-
-- [web/css/style.css](web/css/style.css) - 226 行
-  - 全局样式
-  - 响应式设计
-  - 动画效果
-  - 深色导航主题
 
 ### 3. 数据库
 
@@ -168,46 +116,6 @@ CREATE TABLE posts (
 - CMake 跨平台构建
 - 自动脚本化编译
 - API 测试脚本
-
----
-
-## 📦 项目结构最终版
-
-```
-Blog/
-├── server/                          # C++ 后端
-│   ├── src/
-│   │   ├── main.cpp                 # Web 服务器 (255 行)
-│   │   └── database.cpp             # 数据库操作 (203 行)
-│   ├── include/
-│   │   └── database.h               # 数据库头文件 (48 行)
-│   └── CMakeLists.txt               # CMake 配置
-│
-├── web/                             # 前端
-│   ├── index.html                   # 首页
-│   ├── editor.html                  # 发布页
-│   ├── js/
-│   │   ├── index.js                 # 首页逻辑 (73 行)
-│   │   └── editor.js                # 编辑逻辑 (48 行)
-│   └── css/
-│       └── style.css                # 样式 (226 行)
-│
-├── db/                              # 数据库
-│   └── blog.db                      # SQLite 数据库 (自动生成)
-│
-├── build/                           # 构建输出 (自动生成)
-│   └── bin/
-│       └── blog_server              # 可执行文件
-│
-├── README.md                        # 详细指南
-├── QUICKSTART.md                    # 快速启动
-├── PROJECT_OVERVIEW.md              # 项目概览
-├── build.sh                         # 编译脚本
-├── test-api.sh                      # API 测试脚本
-└── .gitignore                       # Git 配置
-
-总计: ~948 行代码, ~35 KB
-```
 
 ---
 
