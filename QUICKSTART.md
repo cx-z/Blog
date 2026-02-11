@@ -28,5 +28,5 @@
 
 ### 其他
 
-- 项目概览与代码结构：PROJECT_OVERVIEW.md
+- 项目概览与代码结构：docs/architecture/project-overview.md
 - API 汇总与构建排错：README.md

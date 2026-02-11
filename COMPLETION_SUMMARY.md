@@ -70,7 +70,7 @@ CREATE TABLE posts (
   - 优化建议
   - 生产部署方案
 
-- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) - 项目详细概览
+- [project-overview.md](docs/architecture/project-overview.md) - 项目详细概览
   - 文件结构
   - 技术实现
   - 数据库设计
@@ -238,7 +238,7 @@ res.add_header("Access-Control-Allow-Origin", "*");
 
 1. **快速启动** → [QUICKSTART.md](QUICKSTART.md)
 2. **详细指南** → [README.md](README.md)
-3. **项目分析** → [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
+3. **项目分析** → [project-overview.md](docs/architecture/project-overview.md)
 4. **API 测试** → `./test-api.sh`
 
 ---
