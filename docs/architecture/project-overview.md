@@ -6,6 +6,7 @@
 
 - 30 秒入口：../../QUICKSTART.md
 - 构建与 API 汇总：../../README.md
+- 项目总结：../overview/project-summary.md
 - 认证入口：../../QUICKSTART_AUTH.md
 - 登录/注册：../auth/login-register.md
 - Token 会话：../auth/token-session.md
