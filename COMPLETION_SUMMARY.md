@@ -122,29 +122,6 @@ CREATE TABLE posts (
 - 自动脚本化编译
 - API 测试脚本
 
----
-
-## 🚀 快速开始
-
-### 编译 (首次)
-```bash
-cd /Users/bytedance/Projects/Blog
-chmod +x build.sh
-./build.sh
-```
-
-### 启动服务器
-```bash
-cd build
-./bin/blog_server
-```
-
-### 访问网页
-- 首页: http://localhost:8080/index.html
-- 发布: http://localhost:8080/editor.html
-
----
-
 ## 💻 技术栈明细
 
 | 类别 | 技术 | 版本 | 用途 |
@@ -220,7 +197,6 @@ res.add_header("Access-Control-Allow-Origin", "*");
 - [x] 用户界面美化
 - [x] 跨域请求支持
 - [x] 错误处理机制
-- [x] 构建脚本
 - [x] 测试脚本
 - [x] 详细文档
 - [x] 快速启动指南
@@ -263,19 +239,13 @@ res.add_header("Access-Control-Allow-Origin", "*");
 1. **快速启动** → [QUICKSTART.md](QUICKSTART.md)
 2. **详细指南** → [README.md](README.md)
 3. **项目分析** → [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
-4. **自动构建** → `./build.sh`
-5. **API 测试** → `./test-api.sh`
+4. **API 测试** → `./test-api.sh`
 
 ---
 
 ## 🎉 项目完成
 
 **🎊 恭喜！** 项目已完成，所有文件已生成。
-
-下一步:
-1. 运行 `./build.sh` 编译
-2. 运行 `./bin/blog_server` 启动服务
-3. 访问 http://localhost:8080/index.html 测试
 
 祝您使用愉快！ 🚀
 

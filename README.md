@@ -17,8 +17,6 @@ cd /Users/bytedance/Projects/Blog
 cd build && ./bin/blog_server
 ```
 
-详见 [QUICKSTART.md](QUICKSTART.md)
-
 ---
 
 ## 系统要求
@@ -79,7 +77,6 @@ cd /Users/bytedance/Projects/Blog
 - 只需运行一次（除非更新依赖版本）
 - 这是手动 curl 下载，**不依赖 CMake FetchContent**
 - 所有依赖存放在 `build/deps/` 目录
-- 如果网络有问题，参考 [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md)
 
 #### 第 2 步：编译项目
 
@@ -98,6 +95,39 @@ cd /Users/bytedance/Projects/Blog
 - 第一次编译约 2-3 分钟
 - 增量编译（代码改变后）通常 < 1 分钟
 - 编译输出位置：`build/bin/blog_server`
+
+## 构建问题排查
+
+### 依赖下载失败
+
+```bash
+./download-deps.sh
+ls -lh build/deps/crow_include/crow_all.hpp
+ls -lh build/deps/json_include/nlohmann/json.hpp
+```
+
+### 缺少依赖文件
+
+```bash
+./download-deps.sh
+./build.sh
+```
+
+### CMake 配置失败
+
+```bash
+cmake --version
+xcode-select --install
+sqlite3 --version
+```
+
+### 编译失败
+
+```bash
+cd /Users/bytedance/Projects/Blog
+rm -rf build
+./build.sh
+```
 
 ---
 

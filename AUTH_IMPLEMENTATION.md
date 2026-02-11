@@ -222,7 +222,6 @@ const std::string JwtUtils::SECRET_KEY = "your_secret_key_here";
 - [x] 前端：Token 管理和路由保护（auth.js）
 - [x] 前端：受保护页面检查
 - [x] 前端：登出功能
-- [x] 编译：添加 OpenSSL 依赖
 - [x] 测试：功能完整性测试
 
 ---

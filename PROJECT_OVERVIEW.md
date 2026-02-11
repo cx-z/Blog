@@ -63,16 +63,13 @@ Blog/
 │   └── settings.json                # 工作区设置
 │
 ├── AUTH_IMPLEMENTATION.md           # 认证实现说明
-├── BUILD_TROUBLESHOOTING.md         # 构建故障排除
 ├── COMPLETION_REPORT.md             # 完成报告
 ├── COMPLETION_SUMMARY.md            # 完成总结
 ├── PROJECT_OVERVIEW.md              # 项目概览
-├── QUICK_REFERENCE.md               # 快速参考卡
 ├── QUICKSTART.md                    # 快速启动
 ├── QUICKSTART_AUTH.md               # 认证快速启动
 ├── README.md                        # 完整编译运行指南
 ├── START_HERE.md                    # 项目入口说明
-├── WORKFLOW.md                      # 工作流程说明
 ├── deps.md                          # 依赖说明
 ├── build.sh                         # 快速编译脚本
 ├── test-api.sh                      # API 测试脚本
@@ -190,25 +187,6 @@ SQLite 数据库 (blog.db)
 客户端（刷新页面）
 ```
 
-## 🚀 编译流程
-
-1. **CMake 配置阶段**
-   - 查找 CMake、C++ 编译器、SQLite3
-   - 下载 Crow 和 nlohmann/json (首次)
-   - 生成 Makefile/Xcode 工程
-
-2. **编译阶段**
-   - 编译 database.cpp (SQLite 操作)
-   - 编译 main.cpp (Web 服务器)
-   - 链接 SQLite3 库
-   - 输出可执行文件 → bin/blog_server
-
-3. **运行阶段**
-   - 初始化数据库 (blog.db)
-   - 创建 posts 表
-   - 启动 Web 服务器
-   - 监听端口 8080
-
 ## 📱 用户流程
 
 ### 发布文章
@@ -274,15 +252,6 @@ async function loadPosts() {
 3. **CORS 配置**: 明确的跨域头部
 4. **路径遍历防护**: 静态文件路径检查
 
-## 📦 部署建议
-
-- **开发**: 直接运行 `./bin/blog_server`
-- **生产**: 使用 Nginx 反向代理
-- **数据库**: 定期备份 blog.db
-- **日志**: 重定向到文件: `./blog_server > blog.log 2>&1 &`
-
 ---
 
 **项目完成时间**: 2026-02-06
-**依赖数量**: 3 个 (Crow, nlohmann/json, SQLite3)
-**编译时间**: ~2-3 分钟 (首次含依赖下载)

@@ -6,41 +6,12 @@
 
 ---
 
-## 🚀 3 分钟快速启动
-
-### 步骤 1: 安装依赖
-```bash
-brew install cmake sqlite3
-```
-
-### 步骤 2: 编译
-```bash
-cd /Users/bytedance/Projects/Blog
-./build.sh
-```
-
-### 步骤 3: 启动服务
-```bash
-cd build
-./bin/blog_server
-```
-
-### 步骤 4: 访问网页
-- 首页: **http://localhost:8080/index.html**
-- 发布: **http://localhost:8080/editor.html**
-
----
-
-## 📊 项目统计
+##  项目统计
 
 | 项目 | 数量 |
 |------|------|
 | **API 端点** | 6 个 |
 | **技术依赖** | 3 个 (Crow, JSON, SQLite) |
-| **编译时间** | 2-3 分钟 |
-
----
-
 ## 📖 文档导航
 
 根据您的需求选择文档：
@@ -50,7 +21,6 @@ cd build
 | 需求 | 文档 |
 |------|------|
 | 快速开始 | [QUICKSTART.md](QUICKSTART.md) |
-| 编译失败? | ⭐ [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md) |
 | 详细指南 | [README.md](README.md) |
 | 技术分析 | [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) |
 | 项目总结 | [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md) |
@@ -87,25 +57,6 @@ cd build
 
 ---
 
-## 🔧 常见问题快速解答
-
-**Q: 如何编译?**  
-A: 运行 `./build.sh` 即可。
-
-**Q: 如何启动服务?**  
-A: 运行 `cd build && ./bin/blog_server`
-
-**Q: 如何访问?**  
-A: 打开浏览器访问 http://localhost:8080/index.html
-
-**Q: 如何测试 API?**  
-A: 运行 `./test-api.sh` 脚本
-
-**Q: 数据存在哪?**  
-A: SQLite 数据库存储在 `db/blog.db`
-
----
-
 ## 📚 学习资源
 
 这个项目涵盖以下技术领域:
@@ -133,38 +84,6 @@ A: SQLite 数据库存储在 `db/blog.db`
 - 数据库设计
 - API 设计
 - 跨域处理
-
----
-⚠️ 遇到编译问题？
-
-如果您遇到 **404 错误或网络问题**：
-
-### ⭐ 查看: [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md)
-
-快速方案：
-```bash
-# 方案 1：清理并重试
-rm -rf build
-./build.sh
-
-# 方案 2：使用手动下载脚本
-./download-deps.sh
-
-# 方案 3：检查网络问题
-ping github.com
-```
-
-### 常见错误及解决
-
-| 错误 | 解决方案 |
-|------|---------|
-| `404 from GitHub` | 见 [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md) - 方案 1-3 |
-| `not a git repository` | 运行 `git init` |
-| `CMake not found` | 运行 `brew install cmake` |
-| `Address already in use` | 修改端口或杀死占用进程 |PROJECT_OVERVIEW.md)
-4. **API 问题** → 运行 `./test-api.sh` 进行测试
-
----
 
 ## ✨ 项目亮点
 
