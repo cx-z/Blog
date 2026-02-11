@@ -5,12 +5,12 @@
 - asio
 - db-browser-for-sqlite
 
-项目运行时还会下载并使用以下头文件库（由 `download-deps.sh` 获取到 `build/deps/`）：
+仓库内已内置以下第三方头文件依赖（用于后端构建）：
 
 - Crow (crow_all.hpp)
 - nlohmann/json (json.hpp)
 
 这些头文件位于：
 
-- `build/deps/crow_include/crow_all.hpp`
-- `build/deps/json_include/nlohmann/json.hpp`
+- `server/third_party/crow_include/crow_all.hpp`
+- `server/third_party/json_include/nlohmann/json.hpp`

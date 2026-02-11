@@ -19,6 +19,9 @@ Blog/
 │   ├── src/
 │   │   ├── main.cpp                 # 路由、鉴权、静态文件服务
 │   │   └── database.cpp             # SQLite 表与 CRUD
+│   ├── third_party/
+│   │   ├── crow_include/            # Crow 单头文件依赖（crow_all.hpp）
+│   │   └── json_include/            # nlohmann/json 单头文件依赖（json.hpp）
 │   └── include/
 │       ├── database.h               # Post/User 结构与 DB 接口
 │       ├── crypto_utils.h           # 密码加盐哈希
@@ -48,6 +51,8 @@ Blog/
 - `server/src/database.cpp`
   - 自动建表与兼容性迁移（为旧库补列）
   - users/posts CRUD（含管理员软删语义）
+- `server/third_party/*`
+  - 后端构建所需的第三方头文件依赖（离线可用）
 - `web/js/auth.js`
   - localStorage 会话存储
   - 受保护页面校验（verify token）

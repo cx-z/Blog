@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # 博客系统编译脚本 - 纯编译版本
-# 前提条件: 依赖文件必须已通过 download-deps.sh 下载
 # 使用方法: ./build.sh [--help|--clean|--debug|--run]
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,8 +19,6 @@ show_help() {
     echo ""
     echo "博客系统编译脚本"
     echo "================"
-    echo ""
-    echo "前置条件: 先运行 ./download-deps.sh 下载依赖"
     echo ""
     echo "用法: $0 [选项]"
     echo ""
@@ -74,8 +71,8 @@ echo ""
 
 # 检查依赖
 echo -e "${YELLOW}📋 检查依赖文件...${NC}"
-CROW_FILE="$BUILD_DIR/deps/crow_include/crow_all.hpp"
-JSON_FILE="$BUILD_DIR/deps/json_include/nlohmann/json.hpp"
+CROW_FILE="$SERVER_DIR/third_party/crow_include/crow_all.hpp"
+JSON_FILE="$SERVER_DIR/third_party/json_include/nlohmann/json.hpp"
 
 if [ ! -f "$CROW_FILE" ] || [ ! -f "$JSON_FILE" ]; then
     echo -e "${RED}❌ 缺少依赖文件${NC}"
@@ -85,8 +82,7 @@ if [ ! -f "$CROW_FILE" ] || [ ! -f "$JSON_FILE" ]; then
     [ ! -f "$JSON_FILE" ] && echo "  • $JSON_FILE"
     
     echo ""
-    echo "解决方案: 先运行依赖下载脚本"
-    echo -e "${YELLOW}  ./download-deps.sh${NC}"
+    echo "解决方案: 请确认仓库已包含 server/third_party 下的第三方头文件"
     echo ""
     exit 1
 fi

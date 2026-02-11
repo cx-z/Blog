@@ -13,45 +13,35 @@ find_package(SQLite3 REQUIRED)
 # 查找 OpenSSL（用于加密和 JWT）
 find_package(OpenSSL REQUIRED)
 
-# ==================== 手动管理依赖 ====================
-# 依赖由 download-deps.sh 脚本手动下载到以下目录：
-# - ../build/deps/crow_include/crow_all.hpp
-# - ../build/deps/json_include/nlohmann/json.hpp
-
-# 检查依赖文件是否存在
-# CMAKE_CURRENT_BINARY_DIR 是 build 目录，所以用 ./deps/
-set(CROW_FILE "${CMAKE_CURRENT_BINARY_DIR}/deps/crow_include/crow_all.hpp")
-set(JSON_FILE "${CMAKE_CURRENT_BINARY_DIR}/deps/json_include/nlohmann/json.hpp")
+set(CROW_FILE "${CMAKE_CURRENT_LIST_DIR}/third_party/crow_include/crow_all.hpp")
+set(JSON_FILE "${CMAKE_CURRENT_LIST_DIR}/third_party/json_include/nlohmann/json.hpp")
 
 if(NOT EXISTS "${CROW_FILE}")
-    message(FATAL_ERROR 
-        "❌ 错误: Crow 框架文件未找到！\n"
+    message(FATAL_ERROR
+        "❌ 错误: Crow 头文件未找到！\n"
         "   文件应该在: ${CROW_FILE}\n"
         "   \n"
-        "   请先运行下载脚本:\n"
-        "   cd ${CMAKE_CURRENT_BINARY_DIR}/..\n"
-        "   chmod +x ../download-deps.sh\n"
-        "   ../download-deps.sh\n"
-        "   \n"
-        "   然后重新运行 CMake"
+        "   请确认仓库中已包含 third_party 目录"
     )
 endif()
 
 if(NOT EXISTS "${JSON_FILE}")
-    message(FATAL_ERROR 
-        "❌ 错误: nlohmann/json 文件未找到！\n"
+    message(FATAL_ERROR
+        "❌ 错误: nlohmann/json 头文件未找到！\n"
         "   文件应该在: ${JSON_FILE}\n"
         "   \n"
-        "   请先运行下载脚本:\n"
-        "   cd ${CMAKE_CURRENT_BINARY_DIR}/..\n"
-        "   chmod +x ../download-deps.sh\n"
-        "   ../download-deps.sh"
+        "   请确认仓库中已包含 third_party 目录"
     )
 endif()
 
-message(STATUS "✓ 依赖文件已找到")
+message(STATUS "✓ 第三方头文件已找到")
 message(STATUS "  • Crow: ${CROW_FILE}")
 message(STATUS "  • JSON: ${JSON_FILE}")
+
+find_path(ASIO_INCLUDE_DIR asio.hpp)
+if(NOT ASIO_INCLUDE_DIR)
+    message(FATAL_ERROR "❌ 错误: asio.hpp 未找到，请安装 asio 开发包")
+endif()
 
 # 添加可执行文件
 add_executable(blog_server
@@ -64,9 +54,9 @@ target_link_libraries(blog_server PRIVATE SQLite::SQLite3 OpenSSL::Crypto OpenSS
 
 # 包含头文件
 target_include_directories(blog_server PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}/deps/crow_include
-    ${CMAKE_CURRENT_BINARY_DIR}/deps/json_include
-    /opt/homebrew/opt/asio/include
+    ${CMAKE_CURRENT_LIST_DIR}/third_party/crow_include
+    ${CMAKE_CURRENT_LIST_DIR}/third_party/json_include
+    ${ASIO_INCLUDE_DIR}
 )
 
 # 设置输出目录
