@@ -1,99 +1,32 @@
-# 🚀 快速启动指南 (5分钟上手)
+# 🚀 QUICKSTART（30 秒入口）
 
-## 🌐 访问博客
+## 0. 先把服务跑起来
 
-打开浏览器，访问以下地址：
+先按 [README.md](README.md) 完成依赖安装、编译与启动。
 
-| 页面 | URL | 功能 |
-|------|-----|------|
-| 首页 | http://localhost:8080/index.html | 查看文章列表 |
-| 发布 | http://localhost:8080/editor.html | 发布新文章 |
+## 1. 30 秒验收路径
 
-### 测试流程
+1. 打开 http://localhost:8080/ （未登录会跳转到登录页）
+2. 注册一个新账号并登录
+3. 进入发布页 http://localhost:8080/editor.html ，发布一篇文章
+4. 回到首页 http://localhost:8080/index.html ，确认能看到文章列表
+5. 点击“阅读更多”，确认能打开文章详情
 
-1. **首次打开首页**
-   - 访问 http://localhost:8080/index.html
-   - 显示"还没有文章"（数据库为空）
+## 2. 文档导航（按需深入）
 
-2. **发布测试文章**
-   - 点击"发布文章"或访问 http://localhost:8080/editor.html
-   - 输入标题: `我的第一篇博客`
-   - 输入内容: `这是用 C++ Crow 和 SQLite 构建的博客系统！`
-   - 点击"发布文章"按钮
+### 认证与会话
 
-3. **返回首页查看**
-   - 自动跳转回首页
-   - 看到新发布的文章
-   - 点击"阅读更多"查看完整内容
+- 登录/注册：docs/auth/login-register.md
+- Token 会话（verify/过期/登出/多设备）：docs/auth/token-session.md
 
----
+### 文章功能
 
-## 🎨 进阶操作
+- 写文章（创建/编辑）：docs/posts/write.md
+- 文章列表：docs/posts/list.md
+- 阅读文章：docs/posts/read.md
+- 删除文章（含管理员软删语义）：docs/posts/delete.md
 
-### 查看数据库内容
+### 其他
 
-```bash
-# 连接到数据库
-sqlite3 /Users/bytedance/Projects/Blog/db/blog.db
-
-# 查看所有表
-.tables
-
-# 查看文章
-SELECT * FROM posts;
-
-# 退出
-.quit
-```
-`deleted_by_admin` 与 `deleted_at` 用于标记管理员软删除。
-
-### 添加新功能
-
-例如，添加文章搜索功能，可以：
-
-1. 在 [database.h](server/include/database.h) 中添加方法声明
-2. 在 [database.cpp](server/src/database.cpp) 中实现
-3. 在 [main.cpp](server/src/main.cpp) 中添加 API 路由
-4. 在前端 JavaScript 中调用新 API
-
----
-
-## 📊 技术栈总结
-
-| 层 | 技术 | 说明 |
-|----|------|------|
-| **后端** | C++ 17 + Crow | 轻量级 Web 框架 |
-| **数据库** | SQLite 3 | 嵌入式数据库，无需服务器 |
-| **前端** | HTML5 + CSS3 + JS | 原生实现，无框架依赖 |
-| **UI 框架** | Bootstrap 5 | CDN 引入，快速美化 |
-| **构建工具** | CMake 3.10+ | 跨平台编译 |
-
----
-
-## 📚 详细文档
-
-- [完整编译指南](README.md) - 详细的依赖安装和故障排除
-- [项目概览](PROJECT_OVERVIEW.md) - 架构设计和代码分析
-- [API 文档](README.md#-api-接口文档) - RESTful API 详细说明
-
----
-
-## 💡 下一步建议
-
-1. ✅ 成功运行后端和前端
-2. 💻 尝试发布和浏览文章
-3. 📝 查看源代码理解实现原理
-4. 🔧 添加新功能 (搜索、分类、标签等)
-5. 🚀 部署到服务器 (Nginx + systemd)
-
----
-
-## 支持
-
-遇到问题？
-1. 查看 [README.md](README.md) 的"问题排查"章节
-2. 检查浏览器开发者工具的控制台错误信息
-
----
-
-**祝您使用愉快！** 🎉
+- 项目概览与代码结构：PROJECT_OVERVIEW.md
+- API 汇总与构建排错：README.md
