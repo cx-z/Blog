@@ -51,34 +51,6 @@
 
 ---
 
-## 🔒 安全特性
-
-### 密码存储
-```
-存储内容: username | password_hash | salt | created_at
-哈希算法: SHA-256(password + salt)
-Salt: 随机 16 字节，十六进制存储
-```
-
-### JWT Token 结构
-- **Header**: `{"alg": "HS256", "typ": "JWT"}`
-- **Payload**: 
-  ```json
-  {
-    "sub": 用户ID,
-    "username": "账号",
-    "iat": 签发时间,
-    "exp": 过期时间(7天)
-  }
-  ```
-- **Signature**: HMAC-SHA256(Header.Payload, SECRET_KEY)
-
-### Token 有效期
-- 默认 7 天（可在 `jwt_utils.h` 中修改）
-- 前端自动检测过期并重定向到登录页
-
----
-
 ## 📁 文件结构
 
 ### 后端新增文件
