@@ -29,5 +29,5 @@
 ### 其他
 
 - 项目概览与代码结构：docs/architecture/project-overview.md
-- 项目总结：docs/overview/project-summary.md
+- 产品形态总览（PRD/规格）：PRODUCT_OVERVIEW.md
 - API 汇总与构建排错：README.md
