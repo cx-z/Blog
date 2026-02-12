@@ -153,6 +153,44 @@ def main() -> int:
     post2_id = _extract(data, "data.id")
     _assert(isinstance(post2_id, int) and post2_id > 0, f"create post2 missing id, body={data}")
 
+    st, data = _request_json(
+        "PUT",
+        f"{base_url}/api/posts/{post1_id}",
+        token=user_token,
+        body={"title": "t_user1_updated", "content": "c_user1_updated"},
+    )
+    _assert(st == 200, f"user1 update own post expected 200, got {st}, body={data}")
+    _assert(_extract(data, "success") is True, f"user1 update own post expected success=true, body={data}")
+
+    st, data = _request_json("GET", f"{base_url}/api/posts/{post1_id}", token=user_token)
+    _assert(st == 200, f"user1 get own updated post expected 200, got {st}, body={data}")
+    _assert(_extract(data, "data.title") == "t_user1_updated", f"post1 title not updated, body={data}")
+    _assert(_extract(data, "data.content") == "c_user1_updated", f"post1 content not updated, body={data}")
+
+    st, _ = _request_json(
+        "PUT",
+        f"{base_url}/api/posts/{post1_id}",
+        token=user2_token,
+        body={"title": "hijack", "content": "hijack"},
+    )
+    _assert(st == 403, f"user2 update user1 post expected 403, got {st}")
+
+    st, _ = _request_json(
+        "PUT",
+        f"{base_url}/api/posts/{post1_id}",
+        token=admin_token,
+        body={"title": "admin_edit", "content": "admin_edit"},
+    )
+    _assert(st == 403, f"admin update other user's post expected 403, got {st}")
+
+    st, _ = _request_json(
+        "PUT",
+        f"{base_url}/api/posts/99999999",
+        token=user_token,
+        body={"title": "x", "content": "y"},
+    )
+    _assert(st == 404, f"update non-existent post expected 404, got {st}")
+
     st, data = _request_json("GET", f"{base_url}/api/posts", token=user_token)
     _assert(st == 200, f"user1 list posts expected 200, got {st}, body={data}")
     posts = _extract(data, "data")
@@ -186,6 +224,14 @@ def main() -> int:
     deleted_at = _extract(data, "data.deleted_at")
     _assert(deleted_by_admin == 1, f"expected deleted_by_admin=1, got {deleted_by_admin}, body={data}")
     _assert(isinstance(deleted_at, int) and deleted_at > 0, f"expected deleted_at>0, got {deleted_at}, body={data}")
+
+    st, _ = _request_json(
+        "PUT",
+        f"{base_url}/api/posts/{post1_id}",
+        token=user_token,
+        body={"title": "should_fail", "content": "should_fail"},
+    )
+    _assert(st == 403, f"user1 update admin-deleted post expected 403, got {st}")
 
     st, data = _request_json("DELETE", f"{base_url}/api/posts/{post2_id}", token=user2_token)
     _assert(st == 200, f"user2 delete own post2 expected 200, got {st}, body={data}")
