@@ -29,8 +29,8 @@
 
 ### 测试脚本
 
-- 认证/会话与受保护接口：`./test-auth.sh`
-- 文章 CRUD（不含鉴权）：`./test-api.sh`
+- 一键测试入口：`./test.sh`
+- 测试指引文档：[testing.md](docs/testing.md)
 
 ## 最小运行
 

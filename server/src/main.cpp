@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <cstdlib>
 
 int main(int argc, char* argv[]) {
     crow::SimpleApp app;
@@ -40,6 +41,11 @@ int main(int argc, char* argv[]) {
 
     // 初始化数据库（使用项目根目录下的 db/blog.db）
     std::string db_path = (project_root / "db" / "blog.db").string();
+    if (const char* env_db_path = std::getenv("BLOG_DB_PATH")) {
+        if (*env_db_path) {
+            db_path = env_db_path;
+        }
+    }
     std::cout << "Resolved project root: " << project_root << std::endl;
     std::cout << "Resolved db path: " << db_path << std::endl;
     Database db(db_path);
@@ -718,7 +724,17 @@ int main(int argc, char* argv[]) {
     });
 
     CROW_LOG_INFO << "Blog server starting on http://0.0.0.0:8080";
-    app.port(8080).multithreaded().run();
+    int port = 8080;
+    if (const char* env_port = std::getenv("BLOG_PORT")) {
+        try {
+            int parsed = std::stoi(env_port);
+            if (parsed > 0 && parsed <= 65535) {
+                port = parsed;
+            }
+        } catch (...) {
+        }
+    }
+    app.port(static_cast<uint16_t>(port)).multithreaded().run();
     
     return 0;
 }

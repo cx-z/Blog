@@ -4,6 +4,9 @@ project(BlogServer CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(CTest)
+enable_testing()
+
 # 添加包含目录
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -49,8 +52,15 @@ add_executable(blog_server
     src/database.cpp
 )
 
+# 测试可执行文件
+add_executable(db_tests
+    ${CMAKE_CURRENT_LIST_DIR}/../test/test_database.cpp
+    src/database.cpp
+)
+
 # 链接库
 target_link_libraries(blog_server PRIVATE SQLite::SQLite3 OpenSSL::Crypto OpenSSL::SSL)
+target_link_libraries(db_tests PRIVATE SQLite::SQLite3)
 
 # 包含头文件
 target_include_directories(blog_server PRIVATE
@@ -58,6 +68,13 @@ target_include_directories(blog_server PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/third_party/json_include
     ${ASIO_INCLUDE_DIR}
 )
+
+target_include_directories(db_tests PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/third_party/json_include
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
+
+add_test(NAME db_tests COMMAND db_tests)
 
 # 设置输出目录
 set_target_properties(blog_server PROPERTIES

@@ -53,7 +53,7 @@ bool Database::createTablesIfNotExist() {
     bool has_deleted_by_admin = false;
     bool has_deleted_at = false;
     const char* pragma_sql = "PRAGMA table_info(posts);";
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = nullptr;
     if (sqlite3_prepare_v2(db, pragma_sql, -1, &stmt, nullptr) == SQLITE_OK) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             const unsigned char* colname = sqlite3_column_text(stmt, 1);
@@ -208,7 +208,7 @@ bool Database::updatePost(int id, const std::string& title, const std::string& c
     sqlite3_bind_text(stmt, 2, content.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, id);
     
-    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE) && (sqlite3_changes(db) > 0);
     sqlite3_finalize(stmt);
     return success;
 }
@@ -222,7 +222,7 @@ bool Database::deletePost(int id) {
     }
     
     sqlite3_bind_int(stmt, 1, id);
-    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE) && (sqlite3_changes(db) > 0);
     sqlite3_finalize(stmt);
     return success;
 }
@@ -237,7 +237,7 @@ bool Database::softDeletePost(int id, long long deleted_at) {
 
     sqlite3_bind_int64(stmt, 1, deleted_at);
     sqlite3_bind_int(stmt, 2, id);
-    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE) && (sqlite3_changes(db) > 0);
     sqlite3_finalize(stmt);
     return success;
 }

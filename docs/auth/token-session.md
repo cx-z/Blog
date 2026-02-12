@@ -155,11 +155,10 @@ posts 类接口要求 `Authorization` 头满足：
 
 ## 测试脚本
 
-工程根目录提供了覆盖注册/登录/verify/受保护接口的脚本：
+工程根目录提供了一键测试入口，覆盖注册/登录/verify/受保护接口与文章权限校验：
 
 ```bash
-chmod +x test-auth.sh
-./test-auth.sh
+bash ./test.sh
 ```
 
 ## 优化清单
