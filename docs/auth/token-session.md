@@ -11,7 +11,7 @@
 
 相关代码：
 
-- 后端 JWT：../../server/include/jwt_utils.h
+- 后端 JWT：../../server/include/jwt_utils.h（接口）+ ../../server/src/jwt_utils.cpp（实现）
 - 前端会话：../../web/js/auth.js
 
 ## 快速验证
@@ -115,7 +115,7 @@ Token 本身不落库；会话状态由前端保存 Token 决定。权限信息�
 
 ### 修改 Token 过期时间
 
-编辑 ../../server/include/jwt_utils.h：
+编辑 ../../server/src/jwt_utils.cpp：
 
 ```cpp
 const long long JwtUtils::EXPIRATION_TIME = 7 * 24 * 60 * 60;
@@ -123,7 +123,7 @@ const long long JwtUtils::EXPIRATION_TIME = 7 * 24 * 60 * 60;
 
 ### 修改 JWT 签名密钥
 
-编辑 ../../server/include/jwt_utils.h：
+编辑 ../../server/src/jwt_utils.cpp：
 
 ```cpp
 const std::string JwtUtils::SECRET_KEY = "your_secret_key_here";

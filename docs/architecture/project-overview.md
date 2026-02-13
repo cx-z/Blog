@@ -18,14 +18,16 @@ Blog/
 ├── server/
 │   ├── src/
 │   │   ├── main.cpp                 # 路由、鉴权、静态文件服务
-│   │   └── database.cpp             # SQLite 表与 CRUD
+│   │   ├── database.cpp             # SQLite 表与 CRUD
+│   │   ├── crypto_utils.cpp         # 密码加盐哈希实现
+│   │   └── jwt_utils.cpp            # JWT 生成/校验/解析实现
 │   ├── third_party/
 │   │   ├── crow_include/            # Crow 单头文件依赖（本地下载）
 │   │   └── json_include/            # nlohmann/json 单头文件依赖（本地下载）
 │   └── include/
 │       ├── database.h               # Post/User 结构与 DB 接口
-│       ├── crypto_utils.h           # 密码加盐哈希
-│       └── jwt_utils.h              # JWT 生成/校验/解析
+│       ├── crypto_utils.h           # 密码加盐哈希接口
+│       └── jwt_utils.h              # JWT 生成/校验/解析接口
 ├── web/
 │   ├── index.html                   # 列表/阅读/删除入口
 │   ├── editor.html                  # 新建/编辑入口
@@ -131,8 +133,8 @@ JSON 响应
 - XSS 防护：前端渲染前会做 HTML 转义（见 web/js/index.js）
 - CORS：API 响应添加 `Access-Control-Allow-Origin: *`（见 server/src/main.cpp）
 - 路径遍历防护：静态文件路由拒绝包含 `..` 的路径片段（见 server/src/main.cpp）
-- 密码存储：注册时生成 salt，使用哈希存储（crypto_utils.h），不保存明文
-- JWT：HMAC-SHA256 签名 + 过期时间校验（jwt_utils.h）
+- 密码存储：注册时生成 salt，使用哈希存储（server/include/crypto_utils.h + server/src/crypto_utils.cpp），不保存明文
+- JWT：HMAC-SHA256 签名 + 过期时间校验（server/include/jwt_utils.h + server/src/jwt_utils.cpp）
 
 更细的接口级错误码、前端会话行为与排错：
 
