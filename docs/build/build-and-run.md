@@ -25,12 +25,12 @@ brew install cmake sqlite3 openssl asio
 - OpenSSL 在 macOS 上常见安装路径是 `/opt/homebrew/opt/openssl@3`
 - 后端编译依赖 asio 头文件（通常由包管理器安装到系统 include 路径）
 
-## 2.1 仓库内置的第三方头文件
+## 2.1 第三方头文件（需本地下载）
 
-后端编译使用仓库内置的第三方头文件：
+本仓库不会把 `server/third_party` 纳入 Git。后端编译依赖以下头文件，请按 [deps.md](../../deps.md) 指引下载并放置到约定路径：
 
-- `server/third_party/crow_include/crow_all.hpp`
-- `server/third_party/json_include/nlohmann/json.hpp`
+- `server/third_party/crow_include/crow_all.hpp`（Crow v1.3.0.0）
+- `server/third_party/json_include/nlohmann/json.hpp`（nlohmann/json v3.11.2）
 
 ### Linux（Ubuntu/Debian）
 

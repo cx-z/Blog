@@ -24,7 +24,7 @@ if(NOT EXISTS "${CROW_FILE}")
         "❌ 错误: Crow 头文件未找到！\n"
         "   文件应该在: ${CROW_FILE}\n"
         "   \n"
-        "   请确认仓库中已包含 third_party 目录"
+        "   请按 deps.md 指引下载第三方头文件到 server/third_party"
     )
 endif()
 
@@ -33,7 +33,7 @@ if(NOT EXISTS "${JSON_FILE}")
         "❌ 错误: nlohmann/json 头文件未找到！\n"
         "   文件应该在: ${JSON_FILE}\n"
         "   \n"
-        "   请确认仓库中已包含 third_party 目录"
+        "   请按 deps.md 指引下载第三方头文件到 server/third_party"
     )
 endif()
 

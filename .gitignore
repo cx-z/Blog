@@ -36,3 +36,6 @@ blog_server.log
 *.o
 *.obj
 *.tmp
+
+# 本地拉取的第三方依赖（不纳入仓库）
+server/third_party/

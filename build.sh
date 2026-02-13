@@ -82,7 +82,7 @@ if [ ! -f "$CROW_FILE" ] || [ ! -f "$JSON_FILE" ]; then
     [ ! -f "$JSON_FILE" ] && echo "  • $JSON_FILE"
     
     echo ""
-    echo "解决方案: 请确认仓库已包含 server/third_party 下的第三方头文件"
+    echo "解决方案: 请按 deps.md 指引下载第三方头文件到 server/third_party"
     echo ""
     exit 1
 fi
