@@ -51,6 +51,7 @@ add_executable(blog_server
     src/main.cpp
     src/database.cpp
     src/crypto_utils.cpp
+    src/jwt_utils.cpp
 )
 
 # 测试可执行文件
