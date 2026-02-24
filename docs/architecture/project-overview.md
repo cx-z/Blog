@@ -25,9 +25,11 @@ Blog/
 │   │   ├── include/
 │   │   │   ├── login_service.h      # 登录路由注册（接收 app/db）
 │   │   │   └── register_service.h   # 注册路由注册（接收 app/db）
+│   │   │   └── verify_service.h     # verify 路由注册（接收 app/db）
 │   │   └── src/
 │   │       ├── login_service.cpp    # POST /api/auth/login
 │   │       └── register_service.cpp # POST /api/auth/register
+│   │       └── verify_service.cpp   # POST /api/auth/verify
 │   ├── third_party/
 │   │   ├── crow_include/            # Crow 单头文件依赖（本地下载）
 │   │   └── json_include/            # nlohmann/json 单头文件依赖（本地下载）
@@ -55,12 +57,12 @@ Blog/
 ## 核心组件与职责
 
 - `server/src/main.cpp`
-  - Crow 路由：认证路由装配、verify 与文章接口
-  - 认证路由装配：将 login/register 服务注册到同一个 app
+  - Crow 路由：认证路由装配与文章接口
+  - 认证路由装配：将 login/register/verify 服务注册到同一个 app
   - 鉴权：解析 `Authorization: Bearer <token>` 并校验 JWT
   - 静态文件服务：将 `web/` 作为站点根目录对外提供
 - `server/login/*`
-  - 登录/注册接口路由：将认证相关的路由定义与处理逻辑从 main.cpp 拆分出来
+  - 登录/注册/verify 接口路由：将认证相关的路由定义与处理逻辑从 main.cpp 拆分出来
   - 依赖注入：通过参数接收 `crow::SimpleApp& app` 与 `Database& db` 并完成路由注册
 - `server/src/database.cpp`
   - 自动建表与兼容性迁移（为旧库补列）
@@ -118,7 +120,7 @@ Crow API 路由（/api/*）
     ├─ 认证接口（无需 Authorization）
     │   ├─ POST /api/auth/register（server/login）
     │   ├─ POST /api/auth/login（server/login）
-    │   └─ POST /api/auth/verify（server/src/main.cpp）
+    │   └─ POST /api/auth/verify（server/login）
     │
     └─ 文章接口（需要 Authorization: Bearer <token>）
         ├─ 校验请求头格式

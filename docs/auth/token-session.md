@@ -12,6 +12,7 @@
 相关代码：
 
 - 后端 JWT：../../server/include/jwt_utils.h（接口）+ ../../server/src/jwt_utils.cpp（实现）
+- 后端 verify：../../server/login/src/verify_service.cpp
 - 前端会话：../../web/js/auth.js
 
 ## 快速验证
