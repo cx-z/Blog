@@ -9,6 +9,7 @@ enable_testing()
 
 # 添加包含目录
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/login/include)
 
 # 查找 SQLite3
 find_package(SQLite3 REQUIRED)
@@ -52,6 +53,8 @@ add_executable(blog_server
     src/database.cpp
     src/crypto_utils.cpp
     src/jwt_utils.cpp
+    login/src/login_service.cpp
+    login/src/register_service.cpp
 )
 
 # 测试可执行文件

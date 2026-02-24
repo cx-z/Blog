@@ -17,10 +17,17 @@
 Blog/
 ├── server/
 │   ├── src/
-│   │   ├── main.cpp                 # 路由、鉴权、静态文件服务
+│   │   ├── main.cpp                 # 路由装配、鉴权、静态文件服务
 │   │   ├── database.cpp             # SQLite 表与 CRUD
 │   │   ├── crypto_utils.cpp         # 密码加盐哈希实现
 │   │   └── jwt_utils.cpp            # JWT 生成/校验/解析实现
+│   ├── login/
+│   │   ├── include/
+│   │   │   ├── login_service.h      # 登录路由注册（接收 app/db）
+│   │   │   └── register_service.h   # 注册路由注册（接收 app/db）
+│   │   └── src/
+│   │       ├── login_service.cpp    # POST /api/auth/login
+│   │       └── register_service.cpp # POST /api/auth/register
 │   ├── third_party/
 │   │   ├── crow_include/            # Crow 单头文件依赖（本地下载）
 │   │   └── json_include/            # nlohmann/json 单头文件依赖（本地下载）
@@ -28,6 +35,7 @@ Blog/
 │       ├── database.h               # Post/User 结构与 DB 接口
 │       ├── crypto_utils.h           # 密码加盐哈希接口
 │       └── jwt_utils.h              # JWT 生成/校验/解析接口
+│   └── CMakeLists.txt               # 构建配置（包含 login/src/*.cpp）
 ├── web/
 │   ├── index.html                   # 列表/阅读/删除入口
 │   ├── editor.html                  # 新建/编辑入口
@@ -47,14 +55,20 @@ Blog/
 ## 核心组件与职责
 
 - `server/src/main.cpp`
-  - Crow 路由：认证接口与文章接口
+  - Crow 路由：认证路由装配、verify 与文章接口
+  - 认证路由装配：将 login/register 服务注册到同一个 app
   - 鉴权：解析 `Authorization: Bearer <token>` 并校验 JWT
   - 静态文件服务：将 `web/` 作为站点根目录对外提供
+- `server/login/*`
+  - 登录/注册接口路由：将认证相关的路由定义与处理逻辑从 main.cpp 拆分出来
+  - 依赖注入：通过参数接收 `crow::SimpleApp& app` 与 `Database& db` 并完成路由注册
 - `server/src/database.cpp`
   - 自动建表与兼容性迁移（为旧库补列）
   - users/posts CRUD（含管理员软删语义）
 - `server/third_party/*`
   - 后端构建所需的第三方头文件依赖（本地下载，Git 忽略）
+- `server/CMakeLists.txt`
+  - 构建目标与源文件清单（需要包含 `server/login/src/*.cpp` 才能链接通过）
 - `web/js/auth.js`
   - localStorage 会话存储
   - 受保护页面校验（verify token）
@@ -102,9 +116,9 @@ Crow 静态文件服务（根目录 web/）
     ↓
 Crow API 路由（/api/*）
     ├─ 认证接口（无需 Authorization）
-    │   ├─ POST /api/auth/register
-    │   ├─ POST /api/auth/login
-    │   └─ POST /api/auth/verify
+    │   ├─ POST /api/auth/register（server/login）
+    │   ├─ POST /api/auth/login（server/login）
+    │   └─ POST /api/auth/verify（server/src/main.cpp）
     │
     └─ 文章接口（需要 Authorization: Bearer <token>）
         ├─ 校验请求头格式

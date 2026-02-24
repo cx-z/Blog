@@ -192,9 +192,11 @@ CREATE TABLE IF NOT EXISTS users (
 
 注册接口的校验逻辑在后端路由中实现，调整位置：
 
-- ../../server/src/main.cpp（`POST /api/auth/register`）
+- ../../server/login/src/register_service.cpp（`POST /api/auth/register`）
   - username 最小长度
   - password 最小长度
+- ../../server/login/src/login_service.cpp（`POST /api/auth/login`）
+  - 如需增加更多账号/密码格式校验，可在此处调整
 
 ## 优化清单
 
