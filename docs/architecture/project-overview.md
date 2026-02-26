@@ -19,6 +19,11 @@ Blog/
 │   ├── src/
 │   │   ├── main.cpp                 # 路由装配、鉴权、静态文件服务
 │   │   ├── database.cpp             # SQLite 表与 CRUD
+│   ├── posts/
+│   │   ├── include/
+│   │   │   └── post_service.h       # 文章路由注册（接收 app/db）
+│   │   └── src/
+│   │       └── post_service.cpp     # posts 路由实现（list/read/write/delete）
 │   ├── login/
 │   │   ├── include/
 │   │   │   ├── login_service.h      # 登录路由注册（接收 app/db）
@@ -37,7 +42,7 @@ Blog/
 │   │   └── json_include/            # nlohmann/json 单头文件依赖（本地下载）
 │   └── include/
 │       ├── database.h               # Post/User 结构与 DB 接口
-│   └── CMakeLists.txt               # 构建配置（包含 login/src/*.cpp）
+│   └── CMakeLists.txt               # 构建配置（包含 login/src/*.cpp 与 posts/src/*.cpp）
 ├── web/
 │   ├── index.html                   # 列表/阅读/删除入口
 │   ├── editor.html                  # 新建/编辑入口
@@ -57,10 +62,14 @@ Blog/
 ## 核心组件与职责
 
 - `server/src/main.cpp`
-  - Crow 路由：认证路由装配与文章接口
+  - Crow 路由：认证/文章路由装配与静态文件服务
   - 认证路由装配：将 login/register/verify 服务注册到同一个 app
+  - 文章路由装配：将 posts 服务注册到同一个 app
   - 鉴权：解析 `Authorization: Bearer <token>` 并校验 JWT
   - 静态文件服务：将 `web/` 作为站点根目录对外提供
+- `server/posts/*`
+  - 文章接口路由：将 posts 相关路由定义与处理逻辑从 main.cpp 拆分出来
+  - 依赖注入：通过参数接收 `crow::SimpleApp& app` 与 `Database& db` 并完成路由注册
 - `server/login/*`
   - 登录/注册/verify 接口路由：将认证相关的路由定义与处理逻辑从 main.cpp 拆分出来
   - 依赖注入：通过参数接收 `crow::SimpleApp& app` 与 `Database& db` 并完成路由注册
@@ -70,7 +79,7 @@ Blog/
 - `server/third_party/*`
   - 后端构建所需的第三方头文件依赖（本地下载，Git 忽略）
 - `server/CMakeLists.txt`
-  - 构建目标与源文件清单（需要包含 `server/login/src/*.cpp` 才能链接通过）
+  - 构建目标与源文件清单（需要包含 `server/login/src/*.cpp` 与 `server/posts/src/*.cpp` 才能链接通过）
 - `web/js/auth.js`
   - localStorage 会话存储
   - 受保护页面校验（verify token）
@@ -122,7 +131,7 @@ Crow API 路由（/api/*）
     │   ├─ POST /api/auth/login（server/login）
     │   └─ POST /api/auth/verify（server/login）
     │
-    └─ 文章接口（需要 Authorization: Bearer <token>）
+    └─ 文章接口（需要 Authorization: Bearer <token>，server/posts）
         ├─ 校验请求头格式
         ├─ JwtUtils::verifyToken(token)
         ├─ 读取 role（普通用户 / admin）
