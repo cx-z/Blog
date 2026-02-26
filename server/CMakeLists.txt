@@ -51,7 +51,7 @@ endif()
 add_executable(blog_server
     src/main.cpp
     src/database.cpp
-    src/crypto_utils.cpp
+    login/src/crypto_utils.cpp
     login/src/jwt_utils.cpp
     login/src/login_service.cpp
     login/src/register_service.cpp
