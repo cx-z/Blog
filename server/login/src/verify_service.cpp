@@ -6,7 +6,7 @@
 void verify_service::verifyToken(crow::SimpleApp& app, Database& db)
 {
     CROW_ROUTE(app, "/api/auth/verify").methods("POST"_method)
-    ([](const crow::request& req) {
+    ([&db](const crow::request& req) {
         auto body = crow::json::load(req.body);
         
         if (!body || !body.has("token")) {
@@ -29,6 +29,18 @@ void verify_service::verifyToken(crow::SimpleApp& app, Database& db)
             error["success"] = false;
             error["message"] = "Invalid or expired token";
             
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        if (!db.isUserActive(user_id)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+
             crow::response res(error);
             res.code = 401;
             res.add_header("Content-Type", "application/json");

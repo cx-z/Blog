@@ -77,6 +77,7 @@ int main(int argc, char* argv[]) {
     // POST /api/auth/login - 用户登录
     login_service login_service;
     login_service.loginUser(app, db);
+    login_service.deleteAccount(app, db);
     
     // POST /api/auth/verify - 验证 JWT Token
     verify_service verify_service;

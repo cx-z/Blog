@@ -91,8 +91,10 @@ def main() -> int:
         )
         _assert(st == 200, f"user login expected 200, got {st}, body={data}")
         user_token = _extract(data, "data.token")
+        user_id = _extract(data, "data.user_id")
         user_role = _extract(data, "data.role")
         _assert(user_token, f"user login missing token, body={data}")
+        _assert(isinstance(user_id, int) and user_id > 0, f"user login missing user_id, body={data}")
         _assert(user_role == "user", f"user role expected 'user', got {user_role}")
     else:
         user_username = f"user_{_rand_suffix()}"
@@ -104,7 +106,9 @@ def main() -> int:
         )
         _assert(st == 201, f"user register expected 201, got {st}, body={data}")
         user_token = _extract(data, "data.token")
+        user_id = _extract(data, "data.user_id")
         _assert(user_token, f"user register missing token, body={data}")
+        _assert(isinstance(user_id, int) and user_id > 0, f"user register missing user_id, body={data}")
 
     user2_username = f"user2_{_rand_suffix()}"
     user2_password = "password123"
@@ -131,7 +135,7 @@ def main() -> int:
         _assert(admin_token, f"admin login missing token, body={data}")
         _assert(admin_role == "admin", f"admin role expected 'admin', got {admin_role}")
     else:
-        admin_token = _jwt_generate(999999, "admin_test", "admin")
+        admin_token = None
 
     st, data = _request_json(
         "POST",
@@ -180,8 +184,9 @@ def main() -> int:
         f"{base_url}/api/posts/{post1_id}",
         token=admin_token,
         body={"title": "admin_edit", "content": "admin_edit"},
-    )
-    _assert(st == 403, f"admin update other user's post expected 403, got {st}")
+    ) if admin_token else (None, None)
+    if admin_token:
+        _assert(st == 403, f"admin update other user's post expected 403, got {st}")
 
     st, _ = _request_json(
         "PUT",
@@ -199,57 +204,95 @@ def main() -> int:
     _assert(post1_id in ids, f"user1 should see own post {post1_id}")
     _assert(post2_id not in ids, f"user1 should not see other post {post2_id}")
 
-    st, data = _request_json("GET", f"{base_url}/api/posts", token=admin_token)
-    _assert(st == 200, f"admin list posts expected 200, got {st}, body={data}")
-    posts = _extract(data, "data")
-    _assert(isinstance(posts, list), f"admin list posts expected list, body={data}")
-    ids = {p.get("id") for p in posts if isinstance(p, dict)}
-    _assert(post1_id in ids and post2_id in ids, "admin should see all posts")
+    if admin_token:
+        st, data = _request_json("GET", f"{base_url}/api/posts", token=admin_token)
+        _assert(st == 200, f"admin list posts expected 200, got {st}, body={data}")
+        posts = _extract(data, "data")
+        _assert(isinstance(posts, list), f"admin list posts expected list, body={data}")
+        ids = {p.get("id") for p in posts if isinstance(p, dict)}
+        _assert(post1_id in ids and post2_id in ids, "admin should see all posts")
 
     st, _ = _request_json("GET", f"{base_url}/api/posts/{post1_id}", token=user2_token)
     _assert(st == 403, f"user2 get user1 post expected 403, got {st}")
 
-    st, _ = _request_json("GET", f"{base_url}/api/posts/{post1_id}", token=admin_token)
-    _assert(st == 200, f"admin get post1 expected 200, got {st}")
+    if admin_token:
+        st, _ = _request_json("GET", f"{base_url}/api/posts/{post1_id}", token=admin_token)
+        _assert(st == 200, f"admin get post1 expected 200, got {st}")
 
     st, _ = _request_json("DELETE", f"{base_url}/api/posts/{post1_id}", token=user2_token)
     _assert(st == 403, f"user2 delete post1 expected 403, got {st}")
 
-    st, data = _request_json("DELETE", f"{base_url}/api/posts/{post1_id}", token=admin_token)
-    _assert(st == 200, f"admin delete post1 expected 200, got {st}, body={data}")
+    if admin_token:
+        st, data = _request_json("DELETE", f"{base_url}/api/posts/{post1_id}", token=admin_token)
+        _assert(st == 200, f"admin delete post1 expected 200, got {st}, body={data}")
 
-    st, data = _request_json("GET", f"{base_url}/api/posts/{post1_id}", token=admin_token)
-    _assert(st == 200, f"admin get post1 after delete expected 200, got {st}, body={data}")
-    deleted_by_admin = _extract(data, "data.deleted_by_admin")
-    deleted_at = _extract(data, "data.deleted_at")
-    _assert(deleted_by_admin == 1, f"expected deleted_by_admin=1, got {deleted_by_admin}, body={data}")
-    _assert(isinstance(deleted_at, int) and deleted_at > 0, f"expected deleted_at>0, got {deleted_at}, body={data}")
+        st, data = _request_json("GET", f"{base_url}/api/posts/{post1_id}", token=admin_token)
+        _assert(st == 200, f"admin get post1 after delete expected 200, got {st}, body={data}")
+        deleted_by_admin = _extract(data, "data.deleted_by_admin")
+        deleted_at = _extract(data, "data.deleted_at")
+        _assert(deleted_by_admin == 1, f"expected deleted_by_admin=1, got {deleted_by_admin}, body={data}")
+        _assert(isinstance(deleted_at, int) and deleted_at > 0, f"expected deleted_at>0, got {deleted_at}, body={data}")
 
-    st, _ = _request_json(
-        "PUT",
-        f"{base_url}/api/posts/{post1_id}",
-        token=user_token,
-        body={"title": "should_fail", "content": "should_fail"},
-    )
-    _assert(st == 403, f"user1 update admin-deleted post expected 403, got {st}")
+        st, _ = _request_json(
+            "PUT",
+            f"{base_url}/api/posts/{post1_id}",
+            token=user_token,
+            body={"title": "should_fail", "content": "should_fail"},
+        )
+        _assert(st == 403, f"user1 update admin-deleted post expected 403, got {st}")
 
     st, data = _request_json("DELETE", f"{base_url}/api/posts/{post2_id}", token=user2_token)
     _assert(st == 200, f"user2 delete own post2 expected 200, got {st}, body={data}")
 
-    st, _ = _request_json("GET", f"{base_url}/api/posts/{post2_id}", token=admin_token)
-    _assert(st == 404, f"admin get deleted post2 expected 404, got {st}")
+    if admin_token:
+        st, _ = _request_json("GET", f"{base_url}/api/posts/{post2_id}", token=admin_token)
+        _assert(st == 404, f"admin get deleted post2 expected 404, got {st}")
 
-    st, data = _request_json("GET", f"{base_url}/api/posts", token=user_token)
-    _assert(st == 200, f"user1 list posts after delete expected 200, got {st}, body={data}")
-    posts = _extract(data, "data")
-    post1 = None
-    for p in posts:
-        if isinstance(p, dict) and p.get("id") == post1_id:
-            post1 = p
-            break
-    _assert(post1 is not None, "user1 should still see admin-deleted post in own list")
-    _assert(post1.get("deleted_by_admin") == 1, "user1 list should show deleted_by_admin=1 for post1")
-    _assert(post1.get("is_author") is False, "user1 list should mark is_author=false for admin-deleted post1")
+    if admin_token:
+        st, data = _request_json("GET", f"{base_url}/api/posts", token=user_token)
+        _assert(st == 200, f"user1 list posts after delete expected 200, got {st}, body={data}")
+        posts = _extract(data, "data")
+        post1 = None
+        for p in posts:
+            if isinstance(p, dict) and p.get("id") == post1_id:
+                post1 = p
+                break
+        _assert(post1 is not None, "user1 should still see admin-deleted post in own list")
+        _assert(post1.get("deleted_by_admin") == 1, "user1 list should show deleted_by_admin=1 for post1")
+        _assert(post1.get("is_author") is False, "user1 list should mark is_author=false for admin-deleted post1")
+
+    st, data = _request_json(
+        "POST",
+        f"{base_url}/api/auth/delete",
+        token=user_token,
+        body={"password": user_password},
+    )
+    _assert(st == 200, f"user delete account expected 200, got {st}, body={data}")
+    _assert(_extract(data, "success") is True, f"user delete account expected success=true, body={data}")
+
+    st, _ = _request_json("GET", f"{base_url}/api/posts", token=user_token)
+    _assert(st == 401, f"expected 401 for deleted-account token GET /api/posts, got {st}")
+
+    st, _ = _request_json("POST", f"{base_url}/api/auth/verify", body={"token": user_token})
+    _assert(st == 401, f"expected 401 for deleted-account token POST /api/auth/verify, got {st}")
+
+    if admin_token:
+        st, data = _request_json("GET", f"{base_url}/api/posts", token=admin_token)
+        _assert(st == 200, f"admin list posts after account deletion expected 200, got {st}, body={data}")
+        posts = _extract(data, "data")
+        _assert(isinstance(posts, list), f"admin list posts expected list, body={data}")
+        ids = {p.get("id") for p in posts if isinstance(p, dict)}
+        _assert(post1_id not in ids, "admin should not see deleted user's post1 after account deletion")
+
+    st, data = _request_json(
+        "POST",
+        f"{base_url}/api/auth/register",
+        body={"username": user_username, "password": "password123"},
+    )
+    _assert(st == 201, f"re-register after account deletion expected 201, got {st}, body={data}")
+    new_user_id = _extract(data, "data.user_id")
+    _assert(isinstance(new_user_id, int) and new_user_id > 0, f"re-register missing user_id, body={data}")
+    _assert(new_user_id != user_id, f"re-register should get new user_id, old={user_id}, new={new_user_id}")
 
     return 0
 

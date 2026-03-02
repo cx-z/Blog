@@ -6,6 +6,7 @@
 
 - 注册：`POST /api/auth/register`
 - 登录：`POST /api/auth/login`
+- 注销账号：`POST /api/auth/delete`（需要二次输入密码确认，会删除该用户所有博客）
 
 相关页面与脚本：
 
@@ -30,6 +31,17 @@ curl -i -X POST http://localhost:8080/api/auth/register \
 curl -i -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"myuser","password":"password123"}'
+```
+
+### 注销账号
+
+```bash
+TOKEN="替换为登录响应中的 token"
+
+curl -i -X POST http://localhost:8080/api/auth/delete \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"password":"password123"}'
 ```
 
 ## API 详解
@@ -108,6 +120,36 @@ curl -i -X POST http://localhost:8080/api/auth/login \
 }
 ```
 
+### POST /api/auth/delete
+
+注销当前登录账号，并删除该账号的所有博客文章。
+
+说明：
+
+- 必须携带 `Authorization: Bearer <token>`
+- 必须在 Body 中再次输入密码确认
+- 注销后会释放 username 以允许同名重新注册；新注册用户会获得新的 `user_id`
+
+**Request**
+
+- Headers
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <token>`
+- Body
+  - `password`: string（当前账号密码）
+
+**Response**
+
+- `200 OK`
+  - `success`: `true`
+  - `message`: `"Account deleted"`
+- `400 Bad Request`
+  - `message`: `"Missing password"`
+- `401 Unauthorized`
+  - `message`: `"Missing or invalid Authorization header"` / `"Invalid or expired token"` / `"Invalid password"` / `"Account is deleted"`
+- `500 Internal Server Error`
+  - `message`: `"Failed to delete account"`
+
 ## 错误码
 
 ### 注册
@@ -127,6 +169,17 @@ curl -i -X POST http://localhost:8080/api/auth/login \
 | 400 | Missing username or password | Body 缺少字段 |
 | 401 | Invalid username or password | 用户不存在或密码错误 |
 
+### 注销账号
+
+| HTTP | message | 场景 |
+|---|---|---|
+| 400 | Missing password | Body 缺少 password |
+| 401 | Missing or invalid Authorization header | 未携带/格式错误 |
+| 401 | Invalid or expired token | token 无效/过期/账号已注销 |
+| 401 | Invalid password | 二次确认密码错误 |
+| 401 | Account is deleted | 账号已注销 |
+| 500 | Failed to delete account | 事务执行失败 |
+
 ## 数据库结构
 
 认证相关依赖 users 表（初始化时自动创建）：
@@ -138,7 +191,10 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   salt TEXT NOT NULL,
   created_at INTEGER NOT NULL,
-  role TEXT DEFAULT 'user'
+  role TEXT DEFAULT 'user',
+  is_deleted INTEGER NOT NULL DEFAULT 0,
+  deleted_at INTEGER,
+  original_username TEXT
 );
 ```
 
@@ -147,6 +203,9 @@ CREATE TABLE IF NOT EXISTS users (
 - `password_hash`: `SHA256(password + salt)` 的结果（十六进制字符串）
 - `salt`: 以十六进制字符串存储
 - `role`: 当前默认写入 `"user"`
+- `is_deleted`: 是否已注销（1 表示已注销）
+- `deleted_at`: 注销时间（毫秒时间戳）
+- `original_username`: 注销前的原用户名（便于审计/排查）
 
 ## 前端细节
 

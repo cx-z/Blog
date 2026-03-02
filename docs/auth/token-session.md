@@ -8,6 +8,7 @@
 - Token 校验：`POST /api/auth/verify`
 - API 鉴权约定：`Authorization: Bearer <token>`
 - 前端会话行为（自动校验、401 自动登出）
+- 注销账号后的会话失效规则（已注销账号的旧 Token 视为无效）
 
 相关代码：
 
@@ -73,7 +74,7 @@ curl -i http://localhost:8080/api/posts \
 | HTTP | message | 场景 |
 |---|---|---|
 | 400 | Missing token | verify 缺少 token 字段 |
-| 401 | Invalid or expired token | 签名不匹配 / 过期 / token 格式错误 |
+| 401 | Invalid or expired token | 签名不匹配 / 过期 / token 格式错误 / 账号不存在或已注销 |
 
 ## 数据库结构
 
@@ -105,6 +106,14 @@ Token 本身不落库；会话状态由前端保存 Token 决定。权限信息�
 
 - 清理 localStorage（Token/用户信息）
 - 重定向到登录页
+
+### “注销账号”是什么
+
+注销账号是后端接口行为（`POST /api/auth/delete`）：
+
+- 会删除该账号的所有博客文章
+- 会将账号标记为已注销，并释放 username 以允许同名重新注册
+- 注销后旧 Token 会在 `/api/auth/verify` 与所有受保护接口上被视为无效（返回 401）
 
 ## FAQ
 

@@ -11,4 +11,5 @@ private:
 public:
     // 登录用户
     void loginUser(crow::SimpleApp& app, Database& db);
+    void deleteAccount(crow::SimpleApp& app, Database& db);
 };

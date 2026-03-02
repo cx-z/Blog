@@ -32,7 +32,7 @@ Blog/
 │   │   │   └── jwt_utils.h          # JWT 生成/校验/解析接口
 │   │   │   └── crypto_utils.h       # 密码加盐哈希接口
 │   │   └── src/
-│   │       ├── login_service.cpp    # POST /api/auth/login
+│   │       ├── login_service.cpp    # POST /api/auth/login + POST /api/auth/delete
 │   │       └── register_service.cpp # POST /api/auth/register
 │   │       └── verify_service.cpp   # POST /api/auth/verify
 │   │       └── jwt_utils.cpp        # JWT 生成/校验/解析实现
@@ -96,7 +96,10 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   salt TEXT NOT NULL,
   created_at INTEGER NOT NULL,
-  role TEXT DEFAULT 'user'
+  role TEXT DEFAULT 'user',
+  is_deleted INTEGER NOT NULL DEFAULT 0,
+  deleted_at INTEGER,
+  original_username TEXT
 );
 ```
 
@@ -130,6 +133,7 @@ Crow API 路由（/api/*）
     │   ├─ POST /api/auth/register（server/login）
     │   ├─ POST /api/auth/login（server/login）
     │   └─ POST /api/auth/verify（server/login）
+    │   └─ POST /api/auth/delete（server/login，注销账号）
     │
     └─ 文章接口（需要 Authorization: Bearer <token>，server/posts）
         ├─ 校验请求头格式

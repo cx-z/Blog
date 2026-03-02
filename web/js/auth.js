@@ -197,6 +197,8 @@ function showLogoutButton() {
             👤 ${user.username}
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" onclick="handleDeleteAccount()">注销账号</a></li>
+            <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="#" onclick="handleLogout()">退出登录</a></li>
         </ul>
     `;
@@ -211,6 +213,40 @@ function handleLogout() {
     if (confirm('确定要退出登录吗？')) {
         authManager.logout();
         window.location.href = 'login.html';
+    }
+}
+
+async function handleDeleteAccount() {
+    const confirmed = confirm('确定要注销账号吗？注销后将删除你所有博客，且不可恢复。');
+    if (!confirmed) return;
+
+    const password = prompt('请输入密码以确认注销账号：');
+    if (password === null) return;
+    if (!password) {
+        alert('密码不能为空');
+        return;
+    }
+
+    try {
+        const response = await authenticatedFetch('/api/auth/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password })
+        });
+
+        const result = await response.json();
+        if (result && result.success) {
+            authManager.logout();
+            alert('账号已注销');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        alert((result && result.message) ? result.message : '注销失败');
+    } catch (error) {
+        alert(error && error.message ? error.message : '注销失败');
     }
 }
 

@@ -39,6 +39,9 @@ struct User {
     std::string salt;
     long long created_at;
     std::string role;
+    int is_deleted;
+    long long deleted_at;
+    std::string original_username;
 };
 
 class Database {
@@ -62,7 +65,10 @@ public:
     bool insertUser(const std::string& username, const std::string& password_hash, 
                     const std::string& salt, int& out_user_id);
     User getUserByUsername(const std::string& username);
+    User getUserById(int id);
     bool userExists(const std::string& username);
+    bool isUserActive(int id);
+    bool deleteAccount(int user_id, const std::string& new_username, const std::string& original_username, long long deleted_at);
 
 private:
     sqlite3* db = nullptr;

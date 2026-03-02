@@ -37,8 +37,11 @@ int main() {
         check(db.init(), "db.init failed");
 
         int user_id = -1;
-        check(db.insertUser("u_" + randomSuffix(), "hash", "salt", user_id), "insertUser failed");
+        std::string username = "u_" + randomSuffix();
+        check(db.insertUser(username, "hash", "salt", user_id), "insertUser failed");
         check(user_id > 0, "insertUser did not set user_id");
+        check(db.userExists(username), "userExists should return true for active user");
+        check(db.isUserActive(user_id), "isUserActive should return true for active user");
 
         std::string dup_username = "dup_" + randomSuffix();
         int a = -1;
@@ -73,6 +76,26 @@ int main() {
         check(db.deletePost(created2.id), "deletePost failed");
         Post deleted2 = db.getPostById(created2.id);
         check(deleted2.id == -1, "deletePost should remove the row");
+
+        long long deleted_at = 1700000000000LL;
+        std::string new_username = "deleted::" + username + "::" + std::to_string(user_id) + "::" + std::to_string(deleted_at);
+        check(db.deleteAccount(user_id, new_username, username, deleted_at), "deleteAccount failed");
+        check(!db.isUserActive(user_id), "isUserActive should return false for deleted user");
+        check(!db.userExists(username), "userExists should return false for deleted user");
+        check(db.getPostsByUser(user_id).empty(), "getPostsByUser should be empty after deleteAccount");
+
+        User u = db.getUserById(user_id);
+        check(u.id == user_id, "getUserById returned wrong id");
+        check(u.is_deleted == 1, "getUserById should show is_deleted=1");
+        check(u.deleted_at == deleted_at, "getUserById should show correct deleted_at");
+        check(u.original_username == username, "getUserById should preserve original_username");
+        check(u.username == new_username, "getUserById should rename username after deleteAccount");
+
+        check(!db.deleteAccount(user_id, new_username, username, deleted_at), "deleteAccount should fail if already deleted");
+
+        int reused_id = -1;
+        check(db.insertUser(username, "hash2", "salt2", reused_id), "insertUser should allow reusing username after deleteAccount");
+        check(reused_id != user_id, "reused username should get a new user_id");
     }
 
     std::error_code ec;

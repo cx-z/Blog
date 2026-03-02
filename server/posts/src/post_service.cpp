@@ -32,6 +32,18 @@ void PostService::getPostList(crow::SimpleApp& app, Database& db) {
             return res;
         }
 
+        if (!db.isUserActive(user_id)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
         json payload = JwtUtils::getTokenPayload(token);
         std::string role = payload.contains("role") ? payload["role"].get<std::string>() : std::string("user");
 
@@ -91,6 +103,18 @@ void PostService::getPost(crow::SimpleApp& app, Database& db) {
             error["success"] = false;
             error["message"] = "Invalid or expired token";
             
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        if (!db.isUserActive(user_id)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+
             crow::response res(error);
             res.code = 401;
             res.add_header("Content-Type", "application/json");
@@ -177,6 +201,18 @@ void PostService::createPost(crow::SimpleApp& app, Database& db) {
             res.add_header("Access-Control-Allow-Origin", "*");
             return res;
         }
+
+        if (!db.isUserActive(user_id)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
         
         auto body = crow::json::load(req.body);
         
@@ -253,6 +289,18 @@ void PostService::updatePost(crow::SimpleApp& app, Database& db) {
             error["success"] = false;
             error["message"] = "Invalid or expired token";
             
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        if (!db.isUserActive(user_id)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+
             crow::response res(error);
             res.code = 401;
             res.add_header("Content-Type", "application/json");
@@ -354,6 +402,18 @@ void PostService::deletePost(crow::SimpleApp& app, Database& db) {
             error["success"] = false;
             error["message"] = "Invalid or expired token";
             
+            crow::response res(error);
+            res.code = 401;
+            res.add_header("Content-Type", "application/json");
+            res.add_header("Access-Control-Allow-Origin", "*");
+            return res;
+        }
+
+        if (!db.isUserActive(user_id)) {
+            crow::json::wvalue error;
+            error["success"] = false;
+            error["message"] = "Invalid or expired token";
+
             crow::response res(error);
             res.code = 401;
             res.add_header("Content-Type", "application/json");
