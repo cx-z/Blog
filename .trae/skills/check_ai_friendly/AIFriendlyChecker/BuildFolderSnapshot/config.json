@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "name": "BuildFolderSnapshot",
+  "description": "采集指定文件夹的目录树与代表性文件内容片段，生成可供 LLM 审计的快照（用于文件夹级代码质量/架构分析）。",
+  "type": "native",
+  "input": {
+    "parameters": [
+      {
+        "name": "folder_path",
+        "description": "要分析的文件夹路径（相对或绝对）",
+        "required": true
+      },
+      {
+        "name": "include_patterns",
+        "description": "逗号分隔的 glob（如 **/*.cpp,**/*.h），为空则使用默认常见代码后缀",
+        "required": false,
+        "defaultValue": ""
+      },
+      {
+        "name": "exclude_patterns",
+        "description": "逗号分隔的 glob（如 **/build/**,**/.git/**），为空则使用默认排除项",
+        "required": false,
+        "defaultValue": ""
+      },
+      {
+        "name": "max_files",
+        "description": "最多采集文件数（避免快照过大）",
+        "required": false,
+        "defaultValue": 200
+      },
+      {
+        "name": "max_file_bytes",
+        "description": "单文件最多采集字节数（只取片段）",
+        "required": false,
+        "defaultValue": 12000
+      },
+      {
+        "name": "max_total_bytes",
+        "description": "快照总采集字节预算（所有文件片段之和）",
+        "required": false,
+        "defaultValue": 220000
+      }
+    ]
+  }
+}

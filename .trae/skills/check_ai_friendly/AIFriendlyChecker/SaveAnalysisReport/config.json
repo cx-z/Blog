@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "name": "SaveAnalysisReport",
+  "description": "将 AIFriendlyChecker.AnalyzeCode 输出的 JSON 保存为文件到工程根目录 codeAudit/，并返回保存路径。",
+  "type": "native",
+  "input": {
+    "parameters": [
+      {
+        "name": "analysis_json",
+        "description": "AnalyzeCode 输出的纯 JSON 字符串",
+        "required": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "AnalyzeFolder",
+  "description": "分析指定文件夹及其子文件的架构合理性与整体代码 AI 友好度，并输出结构化 JSON 报告。",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 2000,
+    "temperature": 0.2
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "snapshot",
+        "description": "BuildFolderSnapshot 生成的快照 JSON 字符串",
+        "required": true
+      },
+      {
+        "name": "folder_path",
+        "description": "目标文件夹路径（用于展示）",
+        "required": false,
+        "defaultValue": ""
+      }
+    ]
+  }
+}

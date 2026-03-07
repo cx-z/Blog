@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "AnalyzeCode",
+  "description": "分析指定代码或当前文件的 AI 友好度（可读性、Token 密度、命名规范）。当用户要求'检查代码质量'、'分析 AI 易读性'时使用此 Skill。",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 2000,
+    "temperature": 0.2
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "待分析的代码内容",
+        "required": false,
+        "defaultValue": ""
+      },
+      {
+        "name": "file_path",
+        "description": "代码文件路径（可选，用于定位与引用）",
+        "required": false,
+        "defaultValue": ""
+      }
+    ]
+  }
+}
