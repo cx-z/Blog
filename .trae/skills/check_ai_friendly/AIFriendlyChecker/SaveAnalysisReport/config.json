@@ -1,14 +1,20 @@
 {
   "schema": 1,
   "name": "SaveAnalysisReport",
-  "description": "将 AIFriendlyChecker.AnalyzeCode 输出的 JSON 保存为文件到工程根目录 codeAudit/，并返回保存路径。",
+  "description": "将分析 JSON 保存为文件到工程根目录 codeAudit/{run_id}/{timestamp}_{task}.json，并返回保存路径。",
   "type": "native",
   "input": {
     "parameters": [
       {
         "name": "analysis_json",
-        "description": "AnalyzeCode 输出的纯 JSON 字符串",
+        "description": "AnalyzeCode/AnalyzeFolder 输出的纯 JSON 字符串",
         "required": true
+      },
+      {
+        "name": "run_id",
+        "description": "本次任务/会话的 run_id（可选；为空则自动生成）",
+        "required": false,
+        "defaultValue": ""
       }
     ]
   }

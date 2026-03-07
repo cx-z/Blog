@@ -23,12 +23,23 @@ Scoring:
 - 给出 score (0-100)。分数越高表示越利于 LLM 理解与可靠修改。
 - 评分应可解释：严重的上下文缺失/命名混乱/巨大复杂度会显著扣分；轻微风格问题扣分较少。
 
+Token Usage:
+- 如果无法获得真实 token 使用量，token_usage.actual 必须为 null。
+- token_usage.estimated.input_tokens 使用简单估算：input 字符数 / 4 取整（至少为 1，input 为空则为 0）。
+
+Token Hotspots:
+- 必须输出 token_hotspots，用于“热点归因”。
+- 对单文件/片段分析：token_hotspots 至少包含 1 项，指向 file_path（若 file_path 为空则为 null），estimated_tokens 使用 token_usage.estimated.input_tokens，share 固定为 1。
+
 Output Format (STRICT):
 - 只输出纯 JSON 字符串，不要包含 Markdown 代码块标记，不要输出额外解释文本。
 - JSON 结构必须包含以下字段：
+  - report_meta: { run_id: string, file_path: string }
   - score: number (0-100)
-  - issues: array of { line: number|null, type: string, message: string }
+  - issues: array of { path: string|null, line: number|null, type: string, message: string, token_impact: { actual_extra_tokens: number|null, estimated_extra_tokens: number|null, basis: string } }
   - suggestions: array of string
+  - token_usage: { actual: object|null, estimated: { input_tokens: number|null, output_tokens: number|null, total_tokens: number|null } }
+  - token_hotspots: array of { path: string|null, estimated_tokens: number|null, share: number|null, reasons: array of string }
 
 Line Number Policy:
 - 如果你无法确定精确行号，line 必须为 null。

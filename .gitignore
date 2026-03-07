@@ -38,5 +38,8 @@ blog_server.log
 *.obj
 *.tmp
 
+# AI 审计报告（本地生成，不纳入仓库）
+codeAudit/
+
 # 本地拉取的第三方依赖（不纳入仓库）
 server/third_party/

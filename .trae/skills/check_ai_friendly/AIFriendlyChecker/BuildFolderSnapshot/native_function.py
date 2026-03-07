@@ -37,6 +37,34 @@ def _matches_any(path_posix: str, patterns: Iterable[str]) -> bool:
     return False
 
 
+def _estimate_tokens(text: str) -> int:
+    if not text:
+        return 0
+    return max(1, int((len(text) + 3) / 4))
+
+
+def _file_metrics(text: str) -> dict[str, Any]:
+    if not text:
+        return {"lines": 0, "max_line_length": 0, "avg_line_length": 0, "indent_max": 0, "estimated_tokens": 0}
+    lines = text.splitlines()
+    if not lines:
+        return {"lines": 0, "max_line_length": 0, "avg_line_length": 0, "indent_max": 0, "estimated_tokens": 0}
+    lengths = [len(l) for l in lines]
+    indent_max = 0
+    for l in lines:
+        if not l.strip():
+            continue
+        indent = len(l) - len(l.lstrip(" \t"))
+        indent_max = max(indent_max, indent)
+    return {
+        "lines": len(lines),
+        "max_line_length": max(lengths),
+        "avg_line_length": int(sum(lengths) / len(lengths)),
+        "indent_max": indent_max,
+        "estimated_tokens": _estimate_tokens(text),
+    }
+
+
 def _is_probably_binary(sample: bytes) -> bool:
     if b"\x00" in sample:
         return True
@@ -155,15 +183,16 @@ def BuildFolderSnapshot(
 
     for root, dirs, files in os.walk(folder):
         root_path = Path(root)
-        rel_root = _path_to_posix_relative(root_path, folder)
-        if rel_root != ".":
-            tree_paths.append(rel_root + "/")
+        rel_root_folder = _path_to_posix_relative(root_path, folder)
+        rel_root_repo = _path_to_posix_relative(root_path, repo_root)
+        if rel_root_folder != ".":
+            tree_paths.append(rel_root_repo + "/")
 
         pruned_dirs: list[str] = []
         for d in dirs:
             d_path = root_path / d
-            d_posix = _path_to_posix_relative(d_path, folder)
-            if _matches_any(d_posix + "/", exclude):
+            d_posix_folder = _path_to_posix_relative(d_path, folder)
+            if _matches_any(d_posix_folder + "/", exclude):
                 continue
             pruned_dirs.append(d)
         dirs[:] = pruned_dirs
@@ -171,14 +200,15 @@ def BuildFolderSnapshot(
         for f in files:
             scanned_files += 1
             f_path = root_path / f
-            f_posix = _path_to_posix_relative(f_path, folder)
-            if _matches_any(f_posix, exclude):
+            f_posix_folder = _path_to_posix_relative(f_path, folder)
+            if _matches_any(f_posix_folder, exclude):
                 continue
-            if include and not _matches_any(f_posix, include):
+            if include and not _matches_any(f_posix_folder, include):
                 continue
 
             included_files += 1
-            tree_paths.append(f_posix)
+            f_posix_repo = _path_to_posix_relative(f_path, repo_root)
+            tree_paths.append(f_posix_repo)
 
             if len(file_items) >= int(max_files):
                 continue
@@ -208,16 +238,20 @@ def BuildFolderSnapshot(
                     excerpt_bytes = 0
 
             total_bytes += excerpt_bytes
+            metrics = _file_metrics(excerpt)
             file_items.append(
                 {
-                    "path": f_posix,
+                    "path": f_posix_repo,
                     "size": size,
                     "excerpt": excerpt,
+                    "metrics": metrics,
                 }
             )
 
+    estimated_input_tokens = sum(int(f.get("metrics", {}).get("estimated_tokens", 0)) for f in file_items)
     snapshot = {
         "repo_root": str(repo_root),
+        "scope": "folder",
         "folder_path": folder_path,
         "resolved_folder_path": str(folder),
         "stats": {
@@ -225,6 +259,7 @@ def BuildFolderSnapshot(
             "included_files": included_files,
             "snapshot_files": len(file_items),
             "snapshot_total_bytes": total_bytes,
+            "estimated_input_tokens": estimated_input_tokens,
             "max_files": int(max_files),
             "max_file_bytes": int(max_file_bytes),
             "max_total_bytes": int(max_total_bytes),

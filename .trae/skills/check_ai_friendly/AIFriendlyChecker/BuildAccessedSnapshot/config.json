@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "name": "BuildAccessedSnapshot",
+  "description": "基于一次任务中已访问的文件列表生成按需扫描快照（可选保守依赖扩展），用于整体 AI 友好度审计。",
+  "type": "native",
+  "input": {
+    "parameters": [
+      {
+        "name": "task_description",
+        "description": "当前任务描述（用于写入报告元信息）",
+        "required": false,
+        "defaultValue": ""
+      },
+      {
+        "name": "file_paths",
+        "description": "已访问文件路径列表（逗号或换行分隔；支持相对路径）",
+        "required": true
+      },
+      {
+        "name": "max_hops",
+        "description": "依赖扩展层数（保守策略建议 0-1）",
+        "required": false,
+        "defaultValue": 1
+      },
+      {
+        "name": "max_files",
+        "description": "最多采集文件数（避免快照过大）",
+        "required": false,
+        "defaultValue": 60
+      },
+      {
+        "name": "max_file_bytes",
+        "description": "单文件最多采集字节数（只取片段）",
+        "required": false,
+        "defaultValue": 12000
+      },
+      {
+        "name": "max_total_bytes",
+        "description": "快照总采集字节预算（所有文件片段之和）",
+        "required": false,
+        "defaultValue": 180000
+      }
+    ]
+  }
+}
